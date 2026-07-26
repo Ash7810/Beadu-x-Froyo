@@ -175,55 +175,21 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Step 2 (Interactive Preview Mini Widget!) */}
-              <div className="glass-card p-8 rounded-2xl flex flex-col items-center text-center space-y-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-primary/30 relative">
-                <div className="w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center font-display text-xl font-bold shadow-md">
+              {/* Step 2 */}
+              <div className="glass-card p-8 rounded-2xl flex flex-col items-center text-center space-y-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div className="w-14 h-14 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-display text-xl font-bold">
                   2
                 </div>
                 <h3 className="font-display text-xl font-semibold text-foreground">Design Your Bracelet</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Use our fluid digital builder to arrange your components and visualize your signature look in real-time.
                 </p>
-
-                {/* Interactive Mini Builder Widget */}
-                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 bg-background border border-border p-4 flex flex-col justify-between relative shadow-inner">
-                  <div className="text-xs font-medium text-muted-foreground flex justify-between items-center w-full pb-2 border-b border-border/50">
-                    <span>Live Strand Preview</span>
-                    <span className="text-primary font-bold">18 Slots</span>
-                  </div>
-
-                  {/* Visual Arch Strand */}
-                  <div className="relative h-28 w-full flex items-center justify-center">
-                    <svg className="absolute w-full h-full" viewBox="0 0 200 100">
-                      <path d="M 20 80 Q 100 20 180 80" fill="none" stroke="#d4af37" strokeWidth="3" strokeDasharray="4 2" />
-                    </svg>
-
-                    {/* Placed Beads Preview */}
-                    <div className="flex gap-1 z-10 items-center justify-center flex-wrap max-w-[180px]">
-                      {miniBeadList.map((bead, i) => (
-                        <div
-                          key={i}
-                          onClick={() => setActiveMiniBead(i)}
-                          className={`w-7 h-7 rounded-full cursor-pointer transition-transform duration-300 ${activeMiniBead === i ? "scale-125 ring-2 ring-primary shadow-lg" : "hover:scale-110"
-                            }`}
-                        >
-                          <img src={bead.imageUrl} alt={bead.name} className="w-full h-full object-contain" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="text-xs bg-muted/60 rounded-lg p-2 text-center">
-                    <span className="font-semibold text-foreground">{miniBeadList[activeMiniBead]?.name}</span>
-                    <span className="block text-[10px] text-muted-foreground">{miniBeadList[activeMiniBead]?.material}</span>
-                  </div>
-
-                  <Link
-                    href="/builder"
-                    className="w-full py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
-                  >
-                    Open Canvas Builder →
-                  </Link>
+                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm">
+                  <img
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    alt="Design custom Indian handmade bracelet"
+                    src="/beads/pomelli_photoshoot_image_9_16_0726.png"
+                  />
                 </div>
               </div>
 
@@ -282,13 +248,10 @@ export default function Home() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 text-white">
-                    <span className="text-xs font-semibold uppercase tracking-widest opacity-80 text-primary-fixed mb-1">
-                      Designed by {item.designer}
-                    </span>
                     <h3 className="font-display text-2xl font-light">{item.title}</h3>
                     <p className="text-xs opacity-80 mt-1 line-clamp-2">{item.description}</p>
                     <div className="mt-4 pt-3 border-t border-white/20 flex justify-between items-center text-xs">
-                      <span className="bg-white/20 px-3 py-1 rounded-full">{item.beadsCount} Beads</span>
+                      <span className="font-medium opacity-90">{item.material}</span>
                       <span className="font-semibold text-primary-fixed hover:underline flex items-center gap-1">
                         View Details <span className="material-symbols-outlined text-sm">visibility</span>
                       </span>
@@ -443,15 +406,15 @@ export default function Home() {
             </div>
             <div>
               <span className="text-xs uppercase font-bold tracking-widest text-primary">
-                Designed by {selectedGalleryItem.designer}
+                Featured Design
               </span>
               <h3 className="font-display text-2xl font-semibold mt-1">{selectedGalleryItem.title}</h3>
               <p className="text-sm text-muted-foreground mt-2">{selectedGalleryItem.description}</p>
             </div>
             <div className="bg-muted/40 p-4 rounded-xl flex justify-between text-xs font-medium">
               <div>
-                <span className="text-muted-foreground block">Components</span>
-                <span className="text-foreground font-semibold">{selectedGalleryItem.beadsCount} Beads</span>
+                <span className="text-muted-foreground block">Artisan Collection</span>
+                <span className="text-foreground font-semibold">Beadu x Froyo</span>
               </div>
               <div>
                 <span className="text-muted-foreground block">Primary Material</span>
