@@ -202,131 +202,126 @@ function BuilderContent() {
     <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden font-sans select-none">
         
-        {/* Top Header Bar - Structured into LEFT (Static Brand Identity) and RIGHT (Actionable Controls) */}
-        <header className="h-12 sm:h-16 px-3 sm:px-4 md:px-8 bg-card/90 border-b border-border/80 flex justify-between items-center z-30 shrink-0 shadow-xs backdrop-blur-md">
-          {/* LEFT GROUP: Brand Identity (Static) */}
-          <div className="flex items-center gap-2 shrink-0">
+        {/* Top Header Bar */}
+        <header className="h-12 sm:h-16 px-2.5 sm:px-4 md:px-8 bg-card/90 border-b border-border/80 flex justify-between items-center z-30 shrink-0 shadow-xs backdrop-blur-md w-full">
+          {/* LEFT GROUP: Brand Identity */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Link
               href="/"
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-semibold transition-colors p-1.5 sm:px-3 sm:py-1.5 rounded-full border border-border/70 hover:bg-muted/60"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-semibold transition-colors p-1 sm:px-2.5 sm:py-1.5 rounded-full border border-border/70 hover:bg-muted/60"
             >
               <span className="material-symbols-outlined text-base">arrow_back</span>
               <span className="hidden sm:inline">Home</span>
             </Link>
             <div className="h-4 w-px bg-border/80 hidden sm:block" />
-            <Link href="/" className="flex items-center gap-1.5 shrink-0">
-              <img src="/beadu-logo.png" alt="BEADU" className="h-6 sm:h-7 md:h-8 object-contain" />
-              <span className="font-display font-bold text-sm sm:text-base md:text-lg tracking-wider text-foreground hidden xs:inline sm:inline">BEADU</span>
+            <Link href="/" className="flex items-center gap-1 shrink-0">
+              <img src="/beadu-logo.png" alt="BEADU" className="h-5 sm:h-7 md:h-8 object-contain" />
             </Link>
           </div>
 
-          {/* RIGHT GROUP: Actionable Controls (Breadcrumb + Valuation + Staff Kiosk + CTA) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
-            {/* Decoupled 3-Step Breadcrumb Stepper (Numbered Circles - Guaranteed Zero Truncation) */}
-            <div className="flex items-center gap-1 sm:gap-1.5 bg-muted/60 p-1 rounded-full border border-border/80 text-xs font-semibold shrink-0">
+          {/* RIGHT GROUP: Actionable Controls */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* Decoupled 3-Step Breadcrumb Stepper */}
+            <div className="flex items-center gap-0.5 sm:gap-1 bg-muted/60 p-0.5 sm:p-1 rounded-full border border-border/80 text-xs font-semibold shrink-0">
               <button
                 onClick={() => setCurrentStep(1)}
-                className={`px-2.5 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full transition-all flex items-center gap-1 ${
                   currentStep === 1
                     ? "bg-primary text-primary-foreground shadow-sm font-bold"
                     : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                 }`}
                 title="Step 1: Select Beads"
               >
-                <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center ${
                   currentStep === 1 ? "bg-white/20 text-white" : "bg-muted-foreground/20 text-muted-foreground"
                 }`}>1</span>
                 <span className="hidden xl:inline text-xs font-medium">Select Beads</span>
               </button>
 
-              <span className="text-muted-foreground/40 text-xs font-bold">›</span>
+              <span className="text-muted-foreground/40 text-[10px] font-bold">›</span>
 
               <button
                 onClick={() => setCurrentStep(2)}
-                className={`px-2.5 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full transition-all flex items-center gap-1 ${
                   currentStep === 2
                     ? "bg-primary text-primary-foreground shadow-sm font-bold"
                     : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                 }`}
                 title="Step 2: Design Strand"
               >
-                <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center ${
                   currentStep === 2 ? "bg-white/20 text-white" : "bg-muted-foreground/20 text-muted-foreground"
                 }`}>2</span>
                 <span className="hidden xl:inline text-xs font-medium">Design Strand</span>
               </button>
 
-              <span className="text-muted-foreground/40 text-xs font-bold">›</span>
+              <span className="text-muted-foreground/40 text-[10px] font-bold">›</span>
 
               <button
                 onClick={() => placedBeads.length > 0 && setCurrentStep(3)}
                 disabled={placedBeads.length === 0 && currentStep !== 3}
-                className={`px-2.5 sm:px-3 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full transition-all flex items-center gap-1 ${
                   currentStep === 3
                     ? "bg-primary text-primary-foreground shadow-sm font-bold"
                     : placedBeads.length === 0
                     ? "text-muted-foreground/40 cursor-not-allowed"
                     : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                 }`}
-                title={placedBeads.length === 0 ? "Add at least 1 bead to your strand to continue." : "Step 3: Review & Order"}
+                title={placedBeads.length === 0 ? "Add at least 1 bead to continue." : "Step 3: Review & Order"}
               >
-                <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center ${
                   currentStep === 3 ? "bg-white/20 text-white" : "bg-muted-foreground/20 text-muted-foreground"
                 }`}>3</span>
                 <span className="hidden xl:inline text-xs font-medium">Review & Order</span>
               </button>
             </div>
 
-            {/* Header Quick Price Indicator */}
+            {/* Valuation Price Badge */}
             <div className="text-xs text-muted-foreground font-semibold hidden lg:block bg-muted/40 px-3 py-1.5 rounded-full border border-border/60 shrink-0">
               Valuation: <strong className="text-primary font-bold text-sm ml-1">{pricing.total === 0 ? "Free" : `₹${pricing.total}`}</strong>
             </div>
 
-            {/* Staff Kiosk Utility: New Customer Button with Explicit Hover/Touch Tooltip */}
+            {/* New Customer / Reset Button - Compact Icon Button */}
             <button
               onClick={handleNewCustomer}
-              className="group relative p-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all rounded-full border border-border/80 shadow-xs flex items-center justify-center shrink-0"
-              title="Start New Customer"
-              aria-label="Start New Customer"
+              className="p-1.5 sm:p-2 text-xs text-muted-foreground hover:text-primary hover:bg-muted/80 transition-all rounded-full border border-border/80 shadow-xs flex items-center justify-center shrink-0"
+              title="Reset / New Customer"
+              aria-label="Reset / New Customer"
             >
-              <span className="material-symbols-outlined text-base text-primary">person_add</span>
-              <span className="absolute top-full mt-1.5 right-0 hidden group-hover:block group-focus:block group-active:block bg-popover text-popover-foreground border border-border shadow-md text-[10px] font-bold px-2.5 py-1 rounded-md whitespace-nowrap z-50 pointer-events-none animate-in fade-in zoom-in-95">
-                Start New Customer
-              </span>
+              <span className="material-symbols-outlined text-sm sm:text-base">refresh</span>
             </button>
 
-            {/* Primary Action CTA */}
+            {/* Primary Action CTA Button - Fits perfectly on all mobile screens */}
             {currentStep === 3 ? (
               <button
                 onClick={() => setIsCheckoutOpen(true)}
                 disabled={placedBeads.length === 0}
-                className={`px-4 sm:px-5 py-2 font-bold text-xs rounded-full shadow-md transition-all shrink-0 ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 font-bold text-xs rounded-full shadow-md transition-all shrink-0 whitespace-nowrap ${
                   placedBeads.length === 0
                     ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
                     : "gold-shimmer text-on-primary-container hover:scale-105"
                 }`}
               >
-                Checkout Now
+                Checkout
+              </button>
+            ) : currentStep === 1 ? (
+              <button
+                onClick={() => setCurrentStep(2)}
+                className="gold-shimmer text-on-primary-container px-3 py-1.5 sm:px-4 sm:py-2 font-bold text-xs rounded-full shadow-md hover:scale-105 transition-all shrink-0 whitespace-nowrap"
+              >
+                Design →
               </button>
             ) : (
               <button
-                onClick={() => {
-                  if (currentStep === 1) {
-                    setCurrentStep(2);
-                  } else if (currentStep === 2) {
-                    if (placedBeads.length > 0) setCurrentStep(3);
-                  }
-                }}
-                disabled={currentStep === 2 && placedBeads.length === 0}
-                className={`px-4 py-2 font-bold text-xs rounded-full shadow-md transition-all flex items-center gap-1.5 shrink-0 ${
-                  currentStep === 2 && placedBeads.length === 0
+                onClick={() => setCurrentStep(3)}
+                disabled={placedBeads.length === 0}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 font-bold text-xs rounded-full shadow-md transition-all shrink-0 whitespace-nowrap ${
+                  placedBeads.length === 0
                     ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "gold-shimmer text-on-primary-container hover:scale-105"
                 }`}
-                title={currentStep === 2 && placedBeads.length === 0 ? "Add at least 1 bead to your strand to continue." : undefined}
               >
-                <span className="hidden sm:inline">{currentStep === 1 ? "Design Strand →" : "Review Order →"}</span>
-                <span className="sm:hidden">{currentStep === 1 ? "Design →" : "Review →"}</span>
+                Review →
               </button>
             )}
           </div>

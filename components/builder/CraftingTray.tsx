@@ -24,7 +24,7 @@ function DraggableTrayBeadItem({
       {...listeners}
       {...attributes}
       onClick={() => onPlaceBead(bead)}
-      className={`group relative flex flex-col items-center justify-between p-1.5 sm:p-2 rounded-xl bg-card border border-border/80 shadow-xs hover:border-primary/60 hover:bg-muted/30 transition-all cursor-grab active:cursor-grabbing touch-none select-none shrink-0 w-18 h-20 sm:w-22 sm:h-24 ${
+      className={`group relative flex flex-col items-center justify-between p-1.5 sm:p-2 rounded-xl bg-card border border-border/80 shadow-xs hover:border-primary/60 hover:bg-muted/30 transition-all cursor-grab active:cursor-grabbing touch-pan-x select-none shrink-0 w-18 h-20 sm:w-22 sm:h-24 ${
         isDragging ? "opacity-30 scale-90 ring-2 ring-primary" : ""
       }`}
       title={`${bead.name} • ${bead.material}`}
@@ -92,7 +92,7 @@ export function CraftingTray({
           <span>Click beads from the library in Step 1 to collect items into your Crafting Tray.</span>
         </div>
       ) : (
-        <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1 px-1.5 scroll-smooth">
+        <div className="flex gap-2.5 overflow-x-auto touch-pan-x no-scrollbar py-1 px-1.5 scroll-smooth">
           {trayBeads.map((bead, idx) => (
             <DraggableTrayBeadItem
               key={`tray-item-${idx}`}

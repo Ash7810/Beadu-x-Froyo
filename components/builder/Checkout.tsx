@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useBraceletStore } from "@/store/braceletStore";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +12,8 @@ type Props = {
 };
 
 export function Checkout({ isOpen, onClose, onSuccess }: Props) {
-  const { placedBeads, pricing, config } = useBraceletStore();
+  const router = useRouter();
+  const { placedBeads, pricing, config, reset } = useBraceletStore();
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -21,6 +23,12 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
   const [orderId, setOrderId] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleReturnHome = () => {
+    reset();
+    onClose();
+    router.push("/");
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -87,8 +95,8 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
               Thank you, {customerName || "valued customer"}. Your custom {config.wristInches}" bracelet ({placedBeads.length} beads) is queued for hand-finishing by our jewelers. A confirmation email has been dispatched to {customerEmail}.
             </p>
             <div className="pt-2">
-              <Button onClick={onClose} className="w-full gold-shimmer text-on-primary-container font-bold">
-                Done & Return to Builder
+              <Button onClick={handleReturnHome} className="w-full gold-shimmer text-on-primary-container font-bold py-3 rounded-full text-sm">
+                Done & Return Home →
               </Button>
             </div>
           </div>

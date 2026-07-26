@@ -437,23 +437,23 @@ export function BraceletCanvas({
     >
       {/* Canvas Top Bar Controls */}
       {!compact && (
-        <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center z-20 gap-1.5 sm:gap-3">
-          {/* Row 1 on mobile: Wrist Size + Usage inline */}
-          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+        <div className="w-full flex flex-row justify-between items-center z-20 gap-1 sm:gap-3 flex-wrap sm:flex-nowrap">
+          {/* LEFT: Wrist Size Stepper & Capacity Readout */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             {/* Wrist Size Stepper */}
-            <div className="flex items-center gap-1.5 bg-card border border-border/80 px-1.5 py-1 rounded-full text-xs font-semibold shadow-xs">
-              <span className="material-symbols-outlined text-primary text-sm pl-1">straighten</span>
-              <span className="text-foreground font-bold text-[11px] pr-0.5">Wrist:</span>
+            <div className="flex items-center gap-1 bg-card border border-border/80 px-1.5 py-0.5 sm:py-1 rounded-full text-xs font-semibold shadow-xs">
+              <span className="material-symbols-outlined text-primary text-xs sm:text-sm pl-0.5">straighten</span>
+              <span className="text-foreground font-bold text-[10px] sm:text-[11px] hidden xs:inline">Wrist:</span>
               
               <button
                 onClick={() => setWristInches(Math.max(4.5, Math.round((config.wristInches - 0.1) * 10) / 10))}
-                className="w-5 h-5 rounded-full bg-muted/80 border border-border/80 hover:bg-muted text-foreground text-xs font-bold flex items-center justify-center transition-colors shadow-xs"
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-muted/80 border border-border/80 hover:bg-muted text-foreground text-[10px] sm:text-xs font-bold flex items-center justify-center transition-colors shadow-xs"
                 title="Decrease 0.1 in"
               >
                 -
               </button>
 
-              <div className="flex items-center gap-0.5 bg-muted/80 px-1.5 py-0.5 rounded-md border border-border/80 focus-within:ring-1 focus-within:ring-primary/60 shadow-inner">
+              <div className="flex items-center gap-0.5 bg-muted/80 px-1 py-0.5 rounded-md border border-border/80 focus-within:ring-1 focus-within:ring-primary/60 shadow-inner">
                 <input
                   type="number"
                   step="0.1"
@@ -462,31 +462,31 @@ export function BraceletCanvas({
                   value={wristInputVal}
                   onChange={handleWristInputChange}
                   onBlur={handleWristInputBlur}
-                  className="w-7 text-[11px] font-bold text-primary text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0 m-0"
+                  className="w-6 sm:w-7 text-[10px] sm:text-[11px] font-bold text-primary text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0 m-0"
                   aria-label="Wrist size in inches"
                   title="Type exact wrist size in inches"
                 />
-                <span className="text-[11px] font-bold text-primary select-none">&quot;</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-primary select-none">&quot;</span>
               </div>
 
               <button
                 onClick={() => setWristInches(Math.min(10.0, Math.round((config.wristInches + 0.1) * 10) / 10))}
-                className="w-5 h-5 rounded-full bg-muted/80 border border-border/80 hover:bg-muted text-foreground text-xs font-bold flex items-center justify-center transition-colors shadow-xs"
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-muted/80 border border-border/80 hover:bg-muted text-foreground text-[10px] sm:text-xs font-bold flex items-center justify-center transition-colors shadow-xs"
                 title="Increase 0.1 in"
               >
                 +
               </button>
 
-              <span className="text-[10px] font-semibold text-muted-foreground pr-1">({Math.round(config.wristInches * 2.54)}cm)</span>
+              <span className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground pr-0.5">({Math.round(config.wristInches * 2.54)}cm)</span>
             </div>
 
-            {/* Passive Read-Only Capacity Readout */}
-            <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-              <span>Usage:</span>
+            {/* Read-Only Capacity Readout */}
+            <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-medium text-muted-foreground">
+              <span className="hidden sm:inline">Usage:</span>
               <strong className={`font-bold ${physCap.isFull ? "text-destructive" : "text-primary"}`}>
-                {physCap.usedMm}/{physCap.capacityMm} mm
+                {physCap.usedMm}/{physCap.capacityMm}mm
               </strong>
-              <div className="w-12 sm:w-16 h-2 rounded-full bg-muted/90 overflow-hidden border border-border/70">
+              <div className="w-8 sm:w-16 h-1.5 sm:h-2 rounded-full bg-muted/90 overflow-hidden border border-border/70">
                 <div
                   className={`h-full transition-all duration-300 ${
                     physCap.percentUsed >= 100 || physCap.isFull
@@ -503,27 +503,27 @@ export function BraceletCanvas({
             </div>
           </div>
 
-          {/* Top-Right: Segmented View Toggle + Clear Button */}
-          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+          {/* RIGHT: Segmented View Toggle + Clear Button */}
+          <div className="flex items-center gap-1">
             <div className="flex bg-card p-0.5 rounded-full border border-border/80 shadow-xs">
               <button
                 onClick={() => setViewMode("strand")}
-                className={`px-2.5 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all ${
+                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 transition-all ${
                   viewMode === "strand" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
                 }`}
                 title="Strand View (Interactive Builder)"
               >
-                <span className="material-symbols-outlined text-sm">polyline</span>
+                <span className="material-symbols-outlined text-xs sm:text-sm">polyline</span>
                 <span>Strand</span>
               </button>
               <button
                 onClick={() => setViewMode("preview")}
-                className={`px-2.5 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all ${
+                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 transition-all ${
                   viewMode === "preview" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
                 }`}
                 title="Preview Mode (Closed Loop Product Shot)"
               >
-                <span className="material-symbols-outlined text-sm">visibility</span>
+                <span className="material-symbols-outlined text-xs sm:text-sm">visibility</span>
                 <span>Preview</span>
               </button>
             </div>
