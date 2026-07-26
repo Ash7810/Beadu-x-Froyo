@@ -61,33 +61,35 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans overflow-x-hidden">
       {/* Top Navigation Bar */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 md:px-12 py-4 max-w-7xl mx-auto bg-background/80 dark:bg-background/80 backdrop-blur-xl border-b border-border/40 transition-all duration-300">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/beadu-logo.png" alt="Beadu" className="h-8 md:h-10 object-contain" />
-        </Link>
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-background/80 dark:bg-background/80 backdrop-blur-xl border-b border-border/40 transition-all duration-300">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-6 md:px-12 py-4">
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/beadu-logo.png" alt="Beadu" className="h-8 md:h-10 object-contain" />
+          </Link>
 
-        <div className="hidden md:flex gap-8 items-center text-sm font-medium text-muted-foreground">
-          <a href="#collections" className="hover:text-primary transition-colors">
-            Collections
-          </a>
-          <a href="#how-it-works" className="hover:text-primary transition-colors">
-            Process
-          </a>
-          <a href="#showcase" className="hover:text-primary transition-colors">
-            Community Gallery
-          </a>
-          <a href="#upgrades" className="hover:text-primary transition-colors">
-            Rare Materials
-          </a>
+          <div className="hidden md:flex gap-8 items-center text-sm font-medium text-muted-foreground">
+            <a href="#collections" className="hover:text-primary transition-colors">
+              Collections
+            </a>
+            <a href="#how-it-works" className="hover:text-primary transition-colors">
+              Process
+            </a>
+            <a href="#showcase" className="hover:text-primary transition-colors">
+              Community Gallery
+            </a>
+            <a href="#upgrades" className="hover:text-primary transition-colors">
+              Rare Materials
+            </a>
+          </div>
+
+          <Link
+            href="/builder"
+            className="gold-shimmer text-on-primary-container px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-lg">auto_awesome</span>
+            Start Designing
+          </Link>
         </div>
-
-        <Link
-          href="/builder"
-          className="gold-shimmer text-on-primary-container px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-lg">auto_awesome</span>
-          Start Designing
-        </Link>
       </nav>
 
       <main className="flex-1">
