@@ -24,21 +24,21 @@ function DraggableTrayBeadItem({
       {...listeners}
       {...attributes}
       onClick={() => onPlaceBead(bead)}
-      className={`group relative flex flex-col items-center justify-between p-1.5 sm:p-2 rounded-xl bg-card border border-border/80 shadow-xs hover:border-primary/60 hover:bg-muted/30 transition-all cursor-grab active:cursor-grabbing touch-pan-x select-none shrink-0 w-18 h-20 sm:w-22 sm:h-24 ${
+      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border border-border/80 shadow-xs hover:border-primary/60 hover:bg-muted/30 transition-all cursor-grab active:cursor-grabbing touch-pan-x select-none shrink-0 w-20 h-22 sm:w-24 sm:h-26 ${
         isDragging ? "opacity-30 scale-90 ring-2 ring-primary" : ""
       }`}
       title={`${bead.name} • ${bead.material}`}
     >
-      <div className="w-10 h-10 my-0.5 flex items-center justify-center group-hover:scale-110 transition-transform">
+      <div className="w-11 h-11 sm:w-13 sm:h-13 my-0.5 flex items-center justify-center group-hover:scale-110 transition-transform">
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-cover drop-shadow-sm pointer-events-none rounded-full border border-primary/20"
+          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border border-primary/20"
         />
       </div>
 
-      <div className="w-full text-center space-y-0 text-[10px]">
-        <span className="block font-semibold text-foreground truncate w-full leading-tight px-1" title={bead.name}>
+      <div className="w-full text-center space-y-0.5 text-[10px]">
+        <span className="block font-bold text-foreground truncate w-full leading-tight px-1" title={bead.name}>
           {bead.name}
         </span>
         <span className="block text-[9px] text-primary font-bold">

@@ -331,8 +331,8 @@ function BuilderContent() {
         {/* STEP 1: SELECT BEADS FOR TRAY */}
         {/* ========================================================================= */}
         {currentStep === 1 && (
-          <div className="flex-1 flex flex-col justify-between min-h-0 p-4 sm:p-6 max-w-6xl mx-auto w-full gap-4">
-            <div className="flex-1 min-h-0 bg-card rounded-2xl border border-border/80 p-4 sm:p-5 shadow-xs flex flex-col">
+          <div className="flex-1 flex flex-col justify-between min-h-0 p-2.5 sm:p-4 md:p-6 max-w-6xl mx-auto w-full gap-3">
+            <div className="flex-1 min-h-0 bg-card rounded-2xl border border-border/80 p-3 sm:p-5 shadow-xs flex flex-col">
               <BeadLibrary
                 beads={beads}
                 trayBeadIds={trayBeads.map((b) => b.id)}
@@ -345,20 +345,20 @@ function BuilderContent() {
 
             {/* Step 1 Bottom Proceed Bar */}
             <div className="w-full shrink-0">
-              <div className="flex flex-col sm:flex-row justify-between items-center bg-card border border-border/80 p-4 rounded-2xl shadow-sm gap-3">
+              <div className="flex flex-row justify-between items-center bg-card border border-border/80 p-3 sm:p-4 rounded-2xl shadow-sm gap-2">
                 <div className="text-xs flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary text-base">shopping_bag</span>
                   <div>
-                    <span className="text-muted-foreground font-medium">Tray Inventory: </span>
-                    <strong className="text-foreground font-bold">{trayBeads.length} Items Collected</strong>
+                    <span className="text-muted-foreground font-medium hidden xs:inline">Tray Inventory: </span>
+                    <strong className="text-foreground font-bold">{trayBeads.length} Collected</strong>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setCurrentStep(2)}
-                  className="w-full sm:w-auto px-6 py-2.5 gold-shimmer text-on-primary-container font-bold text-xs rounded-full shadow-md hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-2"
+                  className="px-4 py-2 sm:px-6 sm:py-2.5 gold-shimmer text-on-primary-container font-bold text-xs rounded-full shadow-md hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-1.5 shrink-0"
                 >
-                  <span>Set Wrist Size & Design Strand →</span>
+                  <span>Design Strand →</span>
                 </button>
               </div>
             </div>
@@ -369,7 +369,7 @@ function BuilderContent() {
         {/* STEP 2: DESIGN STRAND & CRAFTING TRAY */}
         {/* ========================================================================= */}
         {currentStep === 2 && (
-          <div className="flex-1 flex flex-col justify-between overflow-hidden p-3 sm:p-4 max-w-6xl mx-auto w-full gap-3">
+          <div className="flex-1 flex flex-col justify-between overflow-hidden p-2 sm:p-4 max-w-6xl mx-auto w-full gap-2.5">
             {/* Main Interactive Strand Canvas Stage */}
             <div className="flex-1 w-full min-h-0 flex items-center justify-center">
               <BraceletCanvas allBeads={beads} />

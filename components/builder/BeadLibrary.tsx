@@ -49,7 +49,7 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
       {...listeners}
       {...attributes}
       onClick={handleToggle}
-      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing select-none h-36 sm:h-40 ${
+      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl border transition-all cursor-grab active:cursor-grabbing select-none h-38 sm:h-44 ${
         isSelected
           ? "border-primary ring-2 ring-primary/40 bg-primary/10 shadow-xs"
           : isInTray
@@ -58,24 +58,24 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
       } ${isDragging ? "opacity-30 scale-95 ring-2 ring-primary" : ""}`}
     >
       {isSelected ? (
-        <span className="absolute left-1.5 top-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary text-primary-foreground shadow-xs">
+        <span className="absolute left-2 top-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-xs">
           Active
         </span>
       ) : isInTray ? (
-        <span className="absolute left-1.5 top-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white shadow-xs">
+        <span className="absolute left-2 top-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
           ✓ In Tray
         </span>
       ) : bead.isPremium || bead.price > 0 ? (
-        <span className="absolute left-1.5 top-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+        <span className="absolute left-2 top-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
           Premium
         </span>
       ) : null}
 
-      <div className="w-12 h-12 sm:w-14 sm:h-14 my-1 flex items-center justify-center group-hover:scale-110 transition-transform">
+      <div className="w-12 h-12 sm:w-16 sm:h-16 my-1 flex items-center justify-center group-hover:scale-110 transition-transform">
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-cover drop-shadow-sm pointer-events-none rounded-full"
+          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border border-primary/10"
         />
       </div>
 
@@ -83,7 +83,7 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
         <span className="block text-xs font-bold text-foreground truncate px-0.5" title={bead.name}>
           {bead.name}
         </span>
-        <div className="flex items-center justify-between pt-1 border-t border-border/50">
+        <div className="flex items-center justify-between pt-1 border-t border-border/50 gap-1">
           <span className="text-[11px] text-primary font-bold">
             {bead.isPremium || bead.price > 0 ? `₹${bead.price}` : "Free"}
           </span>
@@ -92,13 +92,13 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
               e.stopPropagation();
               handleToggle();
             }}
-            className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-colors ${
+            className={`px-2 py-0.5 text-[10px] font-bold rounded-full transition-colors whitespace-nowrap ${
               isInTray
                 ? "bg-emerald-600/15 text-emerald-600 hover:bg-destructive/10 hover:text-destructive"
                 : "bg-primary/10 hover:bg-primary/20 text-primary"
             }`}
           >
-            {isInTray ? "✓ In Tray" : "+ Collect"}
+            {isInTray ? "✓ Added" : "+ Collect"}
           </button>
         </div>
       </div>
@@ -212,8 +212,8 @@ export function BeadLibrary({
         </div>
       </div>
 
-      {/* Bead Grid - 3 columns, all cards fully visible, overflow scrollable */}
-      <div className="grid grid-cols-3 gap-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0">
+      {/* Bead Grid - 2 columns on mobile, 3 on tablet, 4 on desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 pr-0.5">
         {filtered.length === 0 ? (
           <div className="col-span-full py-12 text-center text-xs text-muted-foreground space-y-2">
             <span className="material-symbols-outlined text-3xl opacity-40">inventory_2</span>
