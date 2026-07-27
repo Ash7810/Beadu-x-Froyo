@@ -243,13 +243,14 @@ function PlacedBeadItem({
         <circle cx="0" cy="0" r={Math.max(24, beadSize / 2 + 10)} fill="transparent" className="cursor-pointer" />
       )}
 
-      {/* Selected Bead Ring - Simple Clean Circle Ring */}
+      {/* Selected Bead Ring - Clean Dotted Gold Circle Ring */}
       {isSelected && (
         <circle
-          r={beadSize / 2 + 5}
+          r={beadSize / 2 + 6}
           fill="none"
           stroke="#d4af37"
-          strokeWidth="3"
+          strokeWidth="2.5"
+          strokeDasharray="4 3"
         />
       )}
 
