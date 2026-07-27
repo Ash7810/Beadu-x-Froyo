@@ -401,7 +401,6 @@ function BuilderContent() {
               beads={beads}
               trayBeadIds={trayBeads.map((b) => b.id)}
               onSelectBead={handleSelectBead}
-              onAddCustomBead={handleAddCustomBead}
               onAddToTray={handleAddToTray}
               onRemoveFromTrayByBeadId={handleRemoveFromTrayByBeadId}
             />

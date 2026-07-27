@@ -7,7 +7,6 @@ type Props = {
   beads: Bead[];
   trayBeadIds?: string[];
   onSelectBead: (bead: Bead) => void;
-  onAddCustomBead: (bead: Bead) => void;
   onAddToTray: (bead: Bead) => void;
   onRemoveFromTrayByBeadId?: (beadId: string) => void;
 };
@@ -97,20 +96,10 @@ export function BeadLibrary({
   beads,
   trayBeadIds = [],
   onSelectBead,
-  onAddCustomBead,
   onAddToTray,
   onRemoveFromTrayByBeadId,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-
-  // Custom bead form state
-  const [customName, setCustomName] = useState("");
-  const [customMaterial, setCustomMaterial] = useState("Custom Photo Locket");
-  const [customPrice, setCustomPrice] = useState(250);
-  const [customSizeMm, setCustomSizeMm] = useState<number>(10);
-  const [customImage, setCustomImage] = useState<string | null>(null);
-
   const [activeBeadId, setActiveBeadId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -129,41 +118,6 @@ export function BeadLibrary({
     return matchesSearch;
   });
 
-  const handleImageFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setCustomImage(String(e.target.result));
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleCreateCustomBead = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customImage) return;
-
-    const newBead: Bead = {
-      id: `custom-bead-${Date.now()}`,
-      name: customName || "Bespoke Photo Locket",
-      category: "custom" as any,
-      price: Number(customPrice) || 0,
-      material: customMaterial || "Personalized Custom Charm",
-      imageUrl: customImage,
-      isPremium: Number(customPrice) > 0,
-      rotationAllowed: true,
-      size: 1,
-      sizeMm: Number(customSizeMm) || 10,
-      widthMm: Number(customSizeMm) || 10,
-      active: true,
-    };
-
-    onAddCustomBead(newBead);
-    setIsUploadOpen(false);
-    setCustomName("");
-    setCustomImage(null);
-  };
-
   return (
     <div className="flex h-full flex-col gap-3.5 bg-card p-1 sm:p-2 font-sans select-none min-h-0">
       <div className="space-y-2.5">
@@ -175,13 +129,6 @@ export function BeadLibrary({
             </h2>
             <p className="text-[12px] text-muted-foreground mt-0.5">Click "+ Collect" to add items into your Crafting Tray.</p>
           </div>
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="min-h-[40px] px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-[12px] font-medium rounded-full flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
-          >
-            <span className="material-symbols-outlined text-base">add_photo_alternate</span>
-            <span className="hidden xs:inline">+ Custom Bead</span>
-          </button>
         </div>
 
         {/* Search Bar */}
@@ -199,7 +146,7 @@ export function BeadLibrary({
         </div>
       </div>
 
-      {/* Bead Grid - STRICT 2 columns on mobile (<640px), 3 on tablet, 4 on desktop */}
+      {/* Bead Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 pr-0.5">
         {filtered.length === 0 ? (
           <div className="col-span-full py-12 text-center text-[12px] text-muted-foreground space-y-2">
@@ -228,133 +175,6 @@ export function BeadLibrary({
           ))
         )}
       </div>
-
-      {/* Custom Bead Upload Modal Dialog */}
-      {isUploadOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-background border border-border max-w-md w-full rounded-2xl p-6 relative shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
-            <button
-              onClick={() => setIsUploadOpen(false)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-
-            <div>
-              <span className="text-xs uppercase font-bold tracking-widest text-primary">Bespoke Jewelry</span>
-              <h3 className="font-display text-xl font-semibold text-foreground">
-                Create Custom Image Charm
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Upload your own photo or graphics to create a personalized photo locket or custom bead.
-              </p>
-            </div>
-
-            <form onSubmit={handleCreateCustomBead} className="space-y-3 text-xs">
-              {/* Image Upload Area */}
-              <div>
-                <label className="block text-muted-foreground font-medium mb-1">Upload Photo / Graphic</label>
-                <div className="border-2 border-dashed border-border hover:border-primary p-4 rounded-xl text-center flex flex-col items-center justify-center gap-2 cursor-pointer bg-muted/20 relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        handleImageFile(e.target.files[0]);
-                      }
-                    }}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                  />
-                  {customImage ? (
-                    <div className="relative w-20 h-20 rounded-full border-2 border-primary overflow-hidden shadow-md">
-                      <img src={customImage} alt="Custom Preview" className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-3xl text-primary">add_a_photo</span>
-                      <span className="text-xs font-semibold text-foreground">Click to upload image file</span>
-                      <span className="text-[10px] text-muted-foreground">PNG, JPG, WebP supported</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-muted-foreground font-medium mb-1">Charm Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Family Memory Locket"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="block text-[11px] text-muted-foreground font-medium mb-1">Material</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Gold Frame"
-                    value={customMaterial}
-                    onChange={(e) => setCustomMaterial(e.target.value)}
-                    className="w-full px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] text-muted-foreground font-medium mb-1">Price (₹)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="249"
-                    value={customPrice}
-                    onChange={(e) => setCustomPrice(Number(e.target.value))}
-                    className="w-full px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] text-muted-foreground font-medium mb-1">Diameter (mm)</label>
-                  <select
-                    value={customSizeMm}
-                    onChange={(e) => setCustomSizeMm(Number(e.target.value))}
-                    className="w-full px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value={6}>6 mm</option>
-                    <option value={8}>8 mm</option>
-                    <option value={10}>10 mm</option>
-                    <option value={12}>12 mm</option>
-                    <option value={14}>14 mm</option>
-                    <option value={16}>16 mm</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="pt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsUploadOpen(false)}
-                  className="flex-1 py-2.5 rounded-lg border border-border text-xs font-semibold hover:bg-muted"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!customImage}
-                  className={`flex-1 font-bold py-2.5 rounded-lg text-xs shadow-md transition-all ${!customImage
-                      ? "bg-muted text-muted-foreground cursor-not-allowed"
-                      : "gold-shimmer text-on-primary-container hover:scale-105"
-                    }`}
-                >
-                  Add to Customizer
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-
