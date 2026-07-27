@@ -17,13 +17,13 @@ function TrayBeadItem({
     <button
       type="button"
       onClick={() => onTapBead(bead)}
-      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border border-border/80 shadow-xs transition-all cursor-pointer select-none shrink-0 min-w-[76px] w-20 h-22 sm:w-24 sm:h-26 min-h-[44px] ${
+      className={`group relative flex flex-col items-center justify-between p-2.5 rounded-2xl bg-card border border-border/80 shadow-xs transition-all cursor-pointer select-none shrink-0 min-w-[84px] w-22 h-24 sm:w-26 sm:h-28 min-h-[48px] ${
         isSwapMode ? "border-amber-500/80 bg-amber-500/5 hover:bg-amber-500/10" : "hover:border-primary/60 hover:bg-muted/30"
       }`}
       title={isSwapMode ? `Swap with ${bead.name}` : `${bead.name} • ${bead.material}`}
     >
-      <div className={`relative w-11 h-11 sm:w-13 sm:h-13 my-0.5 flex items-center justify-center rounded-full transition-all ${
-        isSelected ? "ring-4 ring-primary ring-offset-2 ring-offset-background scale-105" : "group-hover:scale-105"
+      <div className={`relative w-12 h-12 sm:w-14 sm:h-14 my-0.5 flex items-center justify-center rounded-full transition-all ${
+        isSelected ? "ring-3 ring-primary ring-offset-2 ring-offset-background scale-105" : "group-hover:scale-105"
       }`}>
         <img
           src={bead.imageUrl}

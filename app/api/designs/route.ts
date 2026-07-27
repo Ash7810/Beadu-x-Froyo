@@ -52,6 +52,7 @@ export async function POST(request: Request) {
       address: address || "",
       totalPrice: totalPrice || 0,
       itemCount: placedBeads.length,
+      placedBeads,
       supabaseSaved,
       createdAt: new Date().toISOString(),
     };

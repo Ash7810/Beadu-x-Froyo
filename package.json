@@ -33,7 +33,7 @@
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.12",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "ci-info": "^4.4.0",

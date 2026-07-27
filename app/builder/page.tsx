@@ -333,6 +333,16 @@ function BuilderContent() {
             Valuation: <strong className="text-primary font-medium text-[13px] ml-1">{pricing.total === 0 ? "Free" : `₹${pricing.total}`}</strong>
           </div>
 
+          {/* Admin Portal Lock Icon Button */}
+          <Link
+            href="/admin/orders"
+            className="w-9 h-9 sm:w-10 sm:h-10 text-xs text-muted-foreground hover:text-primary hover:bg-muted/80 transition-all rounded-full border border-border/80 shadow-xs flex items-center justify-center shrink-0 cursor-pointer active:scale-95 min-w-[36px] min-h-[36px]"
+            title="Admin Portal & Configuration"
+            aria-label="Admin Portal & Configuration"
+          >
+            <span className="material-symbols-outlined text-base">lock</span>
+          </Link>
+
           {/* New Customer / Reset Button - 40x40px touch zone */}
           <button
             onClick={handleNewCustomer}

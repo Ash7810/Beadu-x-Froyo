@@ -383,10 +383,19 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto mt-12 pt-6 border-t border-border/50 flex flex-col sm:flex-row justify-between items-center text-xs text-muted-foreground">
           <p>© 2026 Beadu. All rights reserved.</p>
-          <div className="flex gap-6 mt-4 sm:mt-0">
+          <div className="flex gap-6 mt-4 sm:mt-0 items-center">
             <span>Hand-finished in San Francisco</span>
             <span>•</span>
             <span>Sustainably Sourced</span>
+            <span>•</span>
+            <Link
+              href="/admin/orders"
+              className="p-1.5 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-primary transition-colors flex items-center justify-center"
+              title="Admin Portal"
+              aria-label="Admin Portal"
+            >
+              <span className="material-symbols-outlined text-sm">lock</span>
+            </Link>
           </div>
         </div>
       </footer>

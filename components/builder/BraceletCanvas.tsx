@@ -153,7 +153,7 @@ function SlotItem({
   viewMode?: "strand" | "preview";
   onSelectSlot: (slotIndex: number) => void;
 }) {
-  const hitRadius = Math.max(26, baseBeadSize / 2 + 10);
+  const hitRadius = Math.max(28, baseBeadSize / 2 + 12);
 
   return (
     <g
@@ -240,17 +240,16 @@ function PlacedBeadItem({
       </defs>
 
       {!readOnly && (
-        <circle cx="0" cy="0" r={Math.max(20, beadSize / 2 + 4)} fill="transparent" className="cursor-pointer" />
+        <circle cx="0" cy="0" r={Math.max(24, beadSize / 2 + 10)} fill="transparent" className="cursor-pointer" />
       )}
 
-      {/* Selected Bead Ring */}
+      {/* Selected Bead Ring - Simple Clean Circle Ring */}
       {isSelected && (
         <circle
-          r={beadSize / 2 + 6}
+          r={beadSize / 2 + 5}
           fill="none"
           stroke="#d4af37"
-          strokeWidth="2.5"
-          strokeDasharray="4 2"
+          strokeWidth="3"
         />
       )}
 
@@ -264,29 +263,15 @@ function PlacedBeadItem({
         />
       )}
 
-      {isCustomBead ? (
-        <g>
-          <image
-            href={placed.imageUrl}
-            x={-beadSize / 2}
-            y={-beadSize / 2}
-            width={beadSize}
-            height={beadSize}
-            preserveAspectRatio="xMidYMid slice"
-            clipPath={`url(#${clipId})`}
-          />
-          <circle cx="0" cy="0" r={beadSize / 2} fill="url(#cabochon-shine)" pointerEvents="none" />
-        </g>
-      ) : (
-        <image
-          href={placed.imageUrl}
-          x={-beadSize / 2}
-          y={-beadSize / 2}
-          width={beadSize}
-          height={beadSize}
-          preserveAspectRatio="xMidYMid meet"
-        />
-      )}
+      <image
+        href={placed.imageUrl}
+        x={-beadSize / 2}
+        y={-beadSize / 2}
+        width={beadSize}
+        height={beadSize}
+        preserveAspectRatio="xMidYMid meet"
+        clipPath={`url(#${clipId})`}
+      />
     </g>
   );
 }
