@@ -59,7 +59,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans overflow-x-hidden">
+    <div suppressHydrationWarning className="min-h-screen bg-background text-foreground flex flex-col font-sans overflow-x-hidden">
       {/* Top Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-background/80 dark:bg-background/80 backdrop-blur-xl border-b border-border/40 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 md:px-12 py-4">
