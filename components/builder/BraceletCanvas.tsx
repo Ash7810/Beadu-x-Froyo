@@ -441,58 +441,64 @@ export function BraceletCanvas({
           : "relative w-full h-full min-h-[200px] sm:min-h-[260px] lg:min-h-[300px] flex flex-col items-center justify-between rounded-2xl border border-border/80 bg-gradient-to-b from-background via-muted/20 to-background p-2 sm:p-3 md:p-4 shadow-xs select-none overflow-hidden"
       }
     >
-      {/* Canvas Top Bar Controls */}
+      {/* Canvas Top Bar Controls — Restructured into 3 Rows on Mobile (<640px) */}
       {!compact && (
-        <div className="w-full flex flex-row justify-between items-center z-20 gap-1 sm:gap-3 flex-wrap sm:flex-nowrap">
-          {/* LEFT: Wrist Size Stepper & Capacity Readout */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-            {/* Wrist Size Stepper */}
-            <div className="flex items-center gap-1 bg-card border border-border/80 px-1.5 py-0.5 sm:py-1 rounded-full text-xs font-semibold shadow-xs">
-              <span className="material-symbols-outlined text-primary text-xs sm:text-sm pl-0.5">straighten</span>
-              <span className="text-foreground font-bold text-[10px] sm:text-[11px] hidden xs:inline">Wrist:</span>
-              
-              <button
-                onClick={() => setWristInches(Math.max(4.5, Math.round((config.wristInches - 0.1) * 10) / 10))}
-                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-muted/80 border border-border/80 hover:bg-muted text-foreground text-[10px] sm:text-xs font-bold flex items-center justify-center transition-colors shadow-xs"
-                title="Decrease 0.1 in"
-              >
-                -
-              </button>
-
-              <div className="flex items-center gap-0.5 bg-muted/80 px-1 py-0.5 rounded-md border border-border/80 focus-within:ring-1 focus-within:ring-primary/60 shadow-inner">
-                <input
-                  type="number"
-                  step="0.1"
-                  min="4.5"
-                  max="10.0"
-                  value={wristInputVal}
-                  onChange={handleWristInputChange}
-                  onBlur={handleWristInputBlur}
-                  className="w-6 sm:w-7 text-[10px] sm:text-[11px] font-bold text-primary text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0 m-0"
-                  aria-label="Wrist size in inches"
-                  title="Type exact wrist size in inches"
-                />
-                <span className="text-[10px] sm:text-[11px] font-bold text-primary select-none">&quot;</span>
+        <div className="w-full flex flex-col sm:flex-row justify-between items-center z-20 gap-2 sm:gap-3">
+          {/* Row 1 & 2 on Mobile: Wrist Stepper + Capacity Readout */}
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {/* Row 1: Wrist Size Stepper (Full width on mobile, 44px touch targets) */}
+            <div className="flex items-center justify-between sm:justify-start gap-1 bg-card border border-border/80 px-2 py-1 sm:py-1 rounded-full text-xs font-semibold shadow-xs min-h-[44px]">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-base">straighten</span>
+                <span className="text-foreground font-medium text-[13px]">Wrist:</span>
               </div>
+              
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setWristInches(Math.max(4.5, Math.round((config.wristInches - 0.1) * 10) / 10))}
+                  className="w-9 h-9 sm:w-6 sm:h-6 rounded-full bg-muted border border-border/80 hover:bg-muted/80 text-foreground text-sm font-bold flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer min-w-[36px] min-h-[36px]"
+                  title="Decrease 0.1 in"
+                  aria-label="Decrease wrist size"
+                >
+                  -
+                </button>
 
-              <button
-                onClick={() => setWristInches(Math.min(10.0, Math.round((config.wristInches + 0.1) * 10) / 10))}
-                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-muted/80 border border-border/80 hover:bg-muted text-foreground text-[10px] sm:text-xs font-bold flex items-center justify-center transition-colors shadow-xs"
-                title="Increase 0.1 in"
-              >
-                +
-              </button>
+                <div className="flex items-center justify-center gap-0.5 bg-muted/80 px-2 py-1 rounded-md border border-border/80 focus-within:ring-1 focus-within:ring-primary/60 shadow-inner min-h-[36px]">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="4.5"
+                    max="10.0"
+                    value={wristInputVal}
+                    onChange={handleWristInputChange}
+                    onBlur={handleWristInputBlur}
+                    className="w-8 sm:w-7 text-[13px] font-medium text-primary text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0 m-0"
+                    aria-label="Wrist size in inches"
+                    title="Type exact wrist size in inches"
+                  />
+                  <span className="text-[13px] font-medium text-primary select-none">&quot;</span>
+                </div>
 
-              <span className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground pr-0.5">({Math.round(config.wristInches * 2.54)}cm)</span>
+                <button
+                  onClick={() => setWristInches(Math.min(10.0, Math.round((config.wristInches + 0.1) * 10) / 10))}
+                  className="w-9 h-9 sm:w-6 sm:h-6 rounded-full bg-muted border border-border/80 hover:bg-muted/80 text-foreground text-sm font-bold flex items-center justify-center transition-colors shadow-xs active:scale-95 cursor-pointer min-w-[36px] min-h-[36px]"
+                  title="Increase 0.1 in"
+                  aria-label="Increase wrist size"
+                >
+                  +
+                </button>
+
+                <span className="text-[11px] font-medium text-muted-foreground ml-1">({Math.round(config.wristInches * 2.54)}cm)</span>
+              </div>
             </div>
 
-            {/* Read-Only Capacity Readout */}
-            <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-medium text-muted-foreground">
-              <span className="hidden sm:inline">Usage:</span>
-              <strong className={`font-bold ${physCap.isFull ? "text-destructive" : "text-primary"}`}>
+            {/* Row 2: Capacity Readout Bar (Full width on mobile) */}
+            <div className="flex items-center justify-between sm:justify-start gap-2 bg-card/60 sm:bg-transparent px-3 py-1.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-none border-border/60 text-[12px] font-medium text-muted-foreground min-h-[36px]">
+              <span>Usage:</span>
+              <strong className={`font-medium text-[13px] ${physCap.isFull ? "text-destructive" : "text-primary"}`}>
                 {physCap.usedMm}/{physCap.capacityMm}mm
               </strong>
-              <div className="w-8 sm:w-16 h-1.5 sm:h-2 rounded-full bg-muted/90 overflow-hidden border border-border/70">
+              <div className="flex-1 sm:w-16 h-2 rounded-full bg-muted/90 overflow-hidden border border-border/70 max-w-[120px] sm:max-w-none">
                 <div
                   className={`h-full transition-all duration-300 ${
                     physCap.percentUsed >= 100 || physCap.isFull
@@ -509,32 +515,32 @@ export function BraceletCanvas({
             </div>
           </div>
 
-          {/* RIGHT: Segmented View Toggle + Clear Button */}
-          <div className="flex items-center gap-1">
-            <div className="flex bg-card p-0.5 rounded-full border border-border/80 shadow-xs">
+          {/* Row 3 on Mobile: Segmented View Toggle + Clear Button (Right aligned) */}
+          <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-1.5 border-t sm:border-t-0 border-border/40 pt-1.5 sm:pt-0">
+            <div className="flex bg-card p-0.5 rounded-full border border-border/80 shadow-xs min-h-[40px] items-center">
               <button
                 onClick={() => setViewMode("strand")}
-                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 transition-all ${
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 transition-all min-h-[36px] cursor-pointer ${
                   viewMode === "strand" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
                 }`}
                 title="Strand View (Interactive Builder)"
               >
-                <span className="material-symbols-outlined text-xs sm:text-sm">polyline</span>
+                <span className="material-symbols-outlined text-sm">polyline</span>
                 <span>Strand</span>
               </button>
               <button
                 onClick={() => setViewMode("preview")}
-                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 transition-all ${
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 transition-all min-h-[36px] cursor-pointer ${
                   viewMode === "preview" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
                 }`}
                 title="Preview Mode (Closed Loop Product Shot)"
               >
-                <span className="material-symbols-outlined text-xs sm:text-sm">visibility</span>
+                <span className="material-symbols-outlined text-sm">visibility</span>
                 <span>Preview</span>
               </button>
             </div>
 
-            {/* Icon-Only Clear Strand Button */}
+            {/* Icon-Only Clear Strand Button - 40x40px touch zone */}
             <TrashZoneDropTarget onClearStrand={reset} />
           </div>
         </div>
@@ -542,12 +548,12 @@ export function BraceletCanvas({
 
       {/* Capacity / Fit Error Alert Bar */}
       {lastError && !compact && (
-        <div className="w-full bg-destructive/15 border border-destructive/40 text-destructive text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-between z-20 animate-in fade-in my-1">
+        <div className="w-full bg-destructive/15 border border-destructive/40 text-destructive text-[12px] font-medium px-3 py-2 rounded-xl flex items-center justify-between z-20 animate-in fade-in my-1">
           <div className="flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">warning</span>
             <span>{lastError}</span>
           </div>
-          <button onClick={clearError} className="hover:opacity-75">
+          <button onClick={clearError} className="hover:opacity-75 min-w-[36px] min-h-[36px] flex items-center justify-center">
             <span className="material-symbols-outlined text-xs">close</span>
           </button>
         </div>
@@ -555,7 +561,7 @@ export function BraceletCanvas({
 
       {/* Main Interactive Canvas Stage */}
       <div className={`relative w-full max-w-[750px] flex items-center justify-center my-auto ${
-        viewMode === "preview" ? "h-[240px] sm:h-[280px]" : "h-[180px] sm:h-[200px]"
+        viewMode === "preview" ? "h-[220px] sm:h-[280px]" : "h-[180px] sm:h-[200px]"
       }`}>
 
         <svg viewBox={`0 0 ${CANVAS_WIDTH} ${viewMode === "preview" ? CANVAS_HEIGHT_PREVIEW : CANVAS_HEIGHT}`} className="w-full h-full z-10 rounded-2xl">
@@ -713,8 +719,8 @@ export function BraceletCanvas({
 
       {/* On-Canvas Hint Text Banner */}
       {!compact && (
-        <div className="w-full text-center py-1 bg-muted/40 rounded-xl border border-border/50 text-[11px] font-medium text-muted-foreground flex items-center justify-center gap-1.5 z-10 my-1">
-          <span className="material-symbols-outlined text-xs text-primary">touch_app</span>
+        <div className="w-full text-center py-1.5 px-3 bg-muted/40 rounded-xl border border-border/50 text-[12px] font-medium text-muted-foreground flex items-center justify-center gap-1.5 z-10 my-1">
+          <span className="material-symbols-outlined text-sm text-primary">touch_app</span>
           <span>
             {isSwapMode
               ? "Tap a bead in the tray below to swap with the selected bead."
@@ -725,84 +731,85 @@ export function BraceletCanvas({
         </div>
       )}
 
-      {/* Selected Bead Actions Control Drawer with Isolated Top-Right Close Button & Swap Button */}
-      {!compact && (
-        selectedPlacedBead ? (
-          <div className="relative w-full bg-card border border-border/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg animate-in fade-in slide-in-from-bottom-2 z-20">
-            {/* Isolated Top-Right Close Affordance */}
-            <button
-              onClick={() => setSelectedPlacedBead(null)}
-              className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center justify-center shadow-xs"
-              title="Close details"
-            >
-              <span className="material-symbols-outlined text-sm">close</span>
-            </button>
+      {/* Selected Bead Actions Drawer: Mobile Bottom Sheet (<640px) vs Floating Card (>=640px) */}
+      {!compact && selectedPlacedBead && (
+        <div className="fixed inset-x-0 bottom-0 sm:relative sm:inset-auto w-full bg-card border-t sm:border border-border/80 rounded-t-3xl sm:rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xl z-50 animate-in slide-in-from-bottom duration-300 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4">
+          {/* Top Drag Handle Affordance on Mobile */}
+          <div className="w-12 h-1 bg-muted-foreground/30 rounded-full sm:hidden mb-1" />
 
-            <div className="flex items-center gap-3 pr-8 sm:pr-0">
-              <img
-                src={selectedPlacedBead.imageUrl}
-                alt={selectedPlacedBead.name}
-                className="w-10 h-10 object-contain p-1 bg-muted/60 rounded-xl border border-border/80 shadow-xs"
-              />
-              <div>
-                <h4 className="text-xs font-bold text-foreground">{selectedPlacedBead.name}</h4>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Bead {placedBeads.findIndex((b) => b.placedId === selectedPlacedBead.placedId) + 1} of {placedBeads.length} • {selectedPlacedBead.material} •{" "}
-                  <span className="text-primary font-bold">
-                    {selectedPlacedBead.isPremium ? `₹${selectedPlacedBead.price}` : "Free"}
-                  </span>
-                </p>
-              </div>
-            </div>
+          {/* Isolated Top-Right Close Affordance */}
+          <button
+            onClick={() => setSelectedPlacedBead(null)}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center justify-center shadow-xs cursor-pointer active:scale-95"
+            title="Close details"
+          >
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
 
-            <div className="flex items-center gap-2 pr-2 sm:pr-6 flex-wrap">
-              {/* Swap Button */}
-              {onStartSwap && (
-                <button
-                  onClick={() => {
-                    const bead = selectedPlacedBead;
-                    setSelectedPlacedBead(null);
-                    onStartSwap(bead);
-                  }}
-                  className="px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold rounded-lg hover:bg-amber-500/20 transition-colors flex items-center gap-1.5 shadow-xs"
-                >
-                  <span className="material-symbols-outlined text-sm">swap_horiz</span>
-                  <span>Swap</span>
-                </button>
-              )}
-
-              <button
-                onClick={() => duplicateBead(selectedPlacedBead.placedId)}
-                className="px-3 py-1.5 bg-muted/80 text-foreground text-xs font-bold rounded-lg hover:bg-muted transition-colors flex items-center gap-1.5 shadow-xs"
-              >
-                <span className="material-symbols-outlined text-sm">content_copy</span>
-                <span>Duplicate</span>
-              </button>
-
-              {selectedPlacedBead.rotationAllowed && (
-                <button
-                  onClick={() => rotateBead(selectedPlacedBead.placedId, (selectedPlacedBead.rotation + 45) % 360)}
-                  className="px-3 py-1.5 bg-muted/80 text-foreground text-xs font-bold rounded-lg hover:bg-muted transition-colors flex items-center gap-1.5 shadow-xs"
-                >
-                  <span className="material-symbols-outlined text-sm">rotate_right</span>
-                  <span>Rotate</span>
-                </button>
-              )}
-
-              {/* Visually Lighter Red Outline/Fill Remove Button */}
-              <button
-                onClick={() => {
-                  removeBead(selectedPlacedBead.placedId);
-                  setSelectedPlacedBead(null);
-                }}
-                className="px-3 py-1.5 border border-destructive/40 text-destructive bg-destructive/5 hover:bg-destructive/15 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs"
-              >
-                <span className="material-symbols-outlined text-sm">delete</span>
-                <span>Remove</span>
-              </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto pr-8 sm:pr-0">
+            <img
+              src={selectedPlacedBead.imageUrl}
+              alt={selectedPlacedBead.name}
+              className="w-12 h-12 object-contain p-1 bg-muted/60 rounded-xl border border-border/80 shadow-xs"
+            />
+            <div>
+              <h4 className="text-[14px] font-medium text-foreground">{selectedPlacedBead.name}</h4>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
+                Bead {placedBeads.findIndex((b) => b.placedId === selectedPlacedBead.placedId) + 1} of {placedBeads.length} • {selectedPlacedBead.material} •{" "}
+                <span className="text-primary font-medium">
+                  {selectedPlacedBead.isPremium ? `₹${selectedPlacedBead.price}` : "Free"}
+                </span>
+              </p>
             </div>
           </div>
-        ) : null
+
+          <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap justify-stretch">
+            {/* Swap Button */}
+            {onStartSwap && (
+              <button
+                onClick={() => {
+                  const bead = selectedPlacedBead;
+                  setSelectedPlacedBead(null);
+                  onStartSwap(bead);
+                }}
+                className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[13px] font-medium rounded-xl hover:bg-amber-500/20 transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+              >
+                <span className="material-symbols-outlined text-base">swap_horiz</span>
+                <span>Swap</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => duplicateBead(selectedPlacedBead.placedId)}
+              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 bg-muted/80 text-foreground text-[13px] font-medium rounded-xl hover:bg-muted transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+            >
+              <span className="material-symbols-outlined text-base">content_copy</span>
+              <span>Duplicate</span>
+            </button>
+
+            {selectedPlacedBead.rotationAllowed && (
+              <button
+                onClick={() => rotateBead(selectedPlacedBead.placedId, (selectedPlacedBead.rotation + 45) % 360)}
+                className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 bg-muted/80 text-foreground text-[13px] font-medium rounded-xl hover:bg-muted transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+              >
+                <span className="material-symbols-outlined text-base">rotate_right</span>
+                <span>Rotate</span>
+              </button>
+            )}
+
+            {/* Visually Lighter Red Remove Button */}
+            <button
+              onClick={() => {
+                removeBead(selectedPlacedBead.placedId);
+                setSelectedPlacedBead(null);
+              }}
+              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 border border-destructive/40 text-destructive bg-destructive/5 hover:bg-destructive/15 text-[13px] font-medium rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+            >
+              <span className="material-symbols-outlined text-base">delete</span>
+              <span>Remove</span>
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -17,7 +17,7 @@ function TrayBeadItem({
     <button
       type="button"
       onClick={() => onTapBead(bead)}
-      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border shadow-xs transition-all cursor-pointer select-none shrink-0 w-20 h-22 sm:w-24 sm:h-26 ${
+      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border shadow-xs transition-all cursor-pointer select-none shrink-0 min-w-[76px] w-20 h-22 sm:w-24 sm:h-26 min-h-[44px] ${
         isSelected
           ? "border-primary ring-4 ring-primary/40 bg-primary/10 scale-105"
           : isSwapMode
@@ -37,10 +37,10 @@ function TrayBeadItem({
       </div>
 
       <div className="w-full text-center space-y-0.5 text-[10px]">
-        <span className="block font-bold text-foreground truncate w-full leading-tight px-1" title={bead.name}>
+        <span className="block font-medium text-foreground truncate w-full leading-tight px-0.5 text-[12px] sm:text-[13px]" title={bead.name}>
           {bead.name}
         </span>
-        <span className="block text-[9px] text-primary font-bold">
+        <span className="block text-[11px] text-primary font-medium">
           {bead.isPremium || bead.price > 0 ? `₹${bead.price}` : "Free"}
         </span>
       </div>
@@ -73,13 +73,13 @@ export function CraftingTray({
           <span className={`material-symbols-outlined text-base ${isSwapMode ? "text-amber-500 animate-bounce" : "text-primary"}`}>
             {isSwapMode ? "swap_horiz" : "palette"}
           </span>
-          <h3 className="text-xs font-bold text-foreground">
+          <h3 className="text-[14px] font-medium text-foreground">
             {isSwapMode ? "Swap Mode: Pick Replacement Bead" : "Personal Crafting Tray"}
           </h3>
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+          <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
             isSwapMode ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-primary/10 text-primary"
           }`}>
-            {isSwapMode ? "Tap bead to replace" : `${trayBeads.length} Items Collected`}
+            {isSwapMode ? "Tap bead to replace" : `${trayBeads.length} Items`}
           </span>
         </div>
 
@@ -87,23 +87,23 @@ export function CraftingTray({
           <div className="flex items-center gap-2">
             <button
               onClick={onClearTray}
-              className="px-3 py-1 text-xs font-bold text-muted-foreground hover:text-destructive border border-border/80 hover:border-destructive/40 rounded-full transition-all flex items-center gap-1.5 shadow-xs"
+              className="min-h-[36px] min-w-[36px] px-3 py-1 text-[12px] font-medium text-muted-foreground hover:text-destructive border border-border/80 hover:border-destructive/40 rounded-full transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
             >
-              <span className="material-symbols-outlined text-xs">delete_sweep</span>
-              <span>Clear Tray</span>
+              <span className="material-symbols-outlined text-sm">delete_sweep</span>
+              <span className="hidden sm:inline">Clear Tray</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* Horizontally Scrollable Gamified Bead Tray Row */}
+      {/* Horizontally Scrollable Gamified Bead Tray Row - 8px gap */}
       {trayBeads.length === 0 ? (
-        <div className="w-full py-4 rounded-xl border border-dashed border-border flex items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/20">
+        <div className="w-full py-4 rounded-xl border border-dashed border-border flex items-center justify-center gap-2 text-[12px] text-muted-foreground bg-muted/20">
           <span className="material-symbols-outlined text-primary text-base">add_shopping_cart</span>
           <span>Click beads from the library in Step 1 to collect items into your Crafting Tray.</span>
         </div>
       ) : (
-        <div className="flex gap-2.5 overflow-x-auto touch-pan-x no-scrollbar py-1 px-1.5 scroll-smooth">
+        <div className="flex gap-2 overflow-x-auto touch-pan-x no-scrollbar py-1 px-1.5 scroll-smooth">
           {trayBeads.map((bead, idx) => (
             <TrayBeadItem
               key={`tray-item-${idx}`}

@@ -215,13 +215,14 @@ function BuilderContent() {
     <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden font-sans select-none">
         
-        {/* Top Header Bar */}
-        <header className="h-12 sm:h-16 px-2.5 sm:px-4 md:px-8 bg-card/90 border-b border-border/80 flex justify-between items-center z-30 shrink-0 shadow-xs backdrop-blur-md w-full">
+        {/* Top Header Bar — 52px height on mobile, 64px on tablet/desktop */}
+        <header className="h-13 sm:h-16 px-4 md:px-8 bg-card/90 border-b border-border/80 flex justify-between items-center z-30 shrink-0 shadow-xs backdrop-blur-md w-full pt-[max(0px,env(safe-area-inset-top))]">
           {/* LEFT GROUP: Brand Identity */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Link
               href="/"
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-semibold transition-colors p-1 sm:px-2.5 sm:py-1.5 rounded-full border border-border/70 hover:bg-muted/60"
+              className="flex items-center justify-center text-xs text-muted-foreground hover:text-foreground font-medium transition-colors w-9 h-9 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 rounded-full border border-border/70 hover:bg-muted/60"
+              title="Home"
             >
               <span className="material-symbols-outlined text-base">arrow_back</span>
               <span className="hidden sm:inline">Home</span>
@@ -233,39 +234,39 @@ function BuilderContent() {
           </div>
 
           {/* RIGHT GROUP: Actionable Controls */}
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            {/* Decoupled 3-Step Breadcrumb Stepper */}
-            <div className="flex items-center gap-0.5 sm:gap-1 bg-muted/60 p-0.5 sm:p-1 rounded-full border border-border/80 text-xs font-semibold shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Decoupled 3-Step Breadcrumb Stepper — Icon/number only below 480px */}
+            <div className="flex items-center gap-0.5 sm:gap-1 bg-muted/60 p-0.5 sm:p-1 rounded-full border border-border/80 text-xs font-medium shrink-0">
               <button
                 onClick={() => setCurrentStep(1)}
-                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full transition-all flex items-center gap-1 ${
+                className={`px-2 py-1 rounded-full transition-all flex items-center gap-1 min-h-[36px] ${
                   currentStep === 1
-                    ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                    ? "bg-primary text-primary-foreground shadow-xs font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                 }`}
                 title="Step 1: Select Beads"
               >
-                <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center ${
+                <span className={`w-5 h-5 rounded-full text-[11px] font-medium flex items-center justify-center ${
                   currentStep === 1 ? "bg-white/20 text-white" : "bg-muted-foreground/20 text-muted-foreground"
                 }`}>1</span>
-                <span className="hidden xl:inline text-xs font-medium">Select Beads</span>
+                <span className="hidden md:inline text-[12px] font-medium">Select Beads</span>
               </button>
 
               <span className="text-muted-foreground/40 text-[10px] font-bold">›</span>
 
               <button
                 onClick={() => setCurrentStep(2)}
-                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full transition-all flex items-center gap-1 ${
+                className={`px-2 py-1 rounded-full transition-all flex items-center gap-1 min-h-[36px] ${
                   currentStep === 2
-                    ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                    ? "bg-primary text-primary-foreground shadow-xs font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                 }`}
                 title="Step 2: Design Strand"
               >
-                <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center ${
+                <span className={`w-5 h-5 rounded-full text-[11px] font-medium flex items-center justify-center ${
                   currentStep === 2 ? "bg-white/20 text-white" : "bg-muted-foreground/20 text-muted-foreground"
                 }`}>2</span>
-                <span className="hidden xl:inline text-xs font-medium">Design Strand</span>
+                <span className="hidden md:inline text-[12px] font-medium">Design Strand</span>
               </button>
 
               <span className="text-muted-foreground/40 text-[10px] font-bold">›</span>
@@ -273,43 +274,43 @@ function BuilderContent() {
               <button
                 onClick={() => placedBeads.length > 0 && setCurrentStep(3)}
                 disabled={placedBeads.length === 0 && currentStep !== 3}
-                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full transition-all flex items-center gap-1 ${
+                className={`px-2 py-1 rounded-full transition-all flex items-center gap-1 min-h-[36px] ${
                   currentStep === 3
-                    ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                    ? "bg-primary text-primary-foreground shadow-xs font-medium"
                     : placedBeads.length === 0
                     ? "text-muted-foreground/40 cursor-not-allowed"
                     : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                 }`}
                 title={placedBeads.length === 0 ? "Add at least 1 bead to continue." : "Step 3: Review & Order"}
               >
-                <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center ${
+                <span className={`w-5 h-5 rounded-full text-[11px] font-medium flex items-center justify-center ${
                   currentStep === 3 ? "bg-white/20 text-white" : "bg-muted-foreground/20 text-muted-foreground"
                 }`}>3</span>
-                <span className="hidden xl:inline text-xs font-medium">Review & Order</span>
+                <span className="hidden md:inline text-[12px] font-medium">Review & Order</span>
               </button>
             </div>
 
             {/* Valuation Price Badge */}
-            <div className="text-xs text-muted-foreground font-semibold hidden lg:block bg-muted/40 px-3 py-1.5 rounded-full border border-border/60 shrink-0">
-              Valuation: <strong className="text-primary font-bold text-sm ml-1">{pricing.total === 0 ? "Free" : `₹${pricing.total}`}</strong>
+            <div className="text-[12px] text-muted-foreground font-medium hidden lg:block bg-muted/40 px-3 py-1.5 rounded-full border border-border/60 shrink-0">
+              Valuation: <strong className="text-primary font-medium text-[13px] ml-1">{pricing.total === 0 ? "Free" : `₹${pricing.total}`}</strong>
             </div>
 
-            {/* New Customer / Reset Button - Compact Icon Button */}
+            {/* New Customer / Reset Button - 40x40px touch zone */}
             <button
               onClick={handleNewCustomer}
-              className="p-1.5 sm:p-2 text-xs text-muted-foreground hover:text-primary hover:bg-muted/80 transition-all rounded-full border border-border/80 shadow-xs flex items-center justify-center shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 text-xs text-muted-foreground hover:text-primary hover:bg-muted/80 transition-all rounded-full border border-border/80 shadow-xs flex items-center justify-center shrink-0 cursor-pointer active:scale-95 min-w-[36px] min-h-[36px]"
               title="Reset / New Customer"
               aria-label="Reset / New Customer"
             >
-              <span className="material-symbols-outlined text-sm sm:text-base">refresh</span>
+              <span className="material-symbols-outlined text-base">refresh</span>
             </button>
 
-            {/* Primary Action CTA Button - Fits perfectly on all mobile screens */}
+            {/* Primary Action CTA Button - Minimum 44-48px touch height */}
             {currentStep === 3 ? (
               <button
                 onClick={() => setIsCheckoutOpen(true)}
                 disabled={placedBeads.length === 0}
-                className={`px-3 py-1.5 sm:px-4 sm:py-2 font-bold text-xs rounded-full shadow-md transition-all shrink-0 whitespace-nowrap ${
+                className={`px-3.5 py-2 sm:px-4 sm:py-2 font-medium text-[13px] rounded-full shadow-md transition-all shrink-0 whitespace-nowrap min-h-[40px] flex items-center ${
                   placedBeads.length === 0
                     ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
                     : "gold-shimmer text-on-primary-container hover:scale-105"
@@ -320,21 +321,23 @@ function BuilderContent() {
             ) : currentStep === 1 ? (
               <button
                 onClick={() => setCurrentStep(2)}
-                className="gold-shimmer text-on-primary-container px-3 py-1.5 sm:px-4 sm:py-2 font-bold text-xs rounded-full shadow-md hover:scale-105 transition-all shrink-0 whitespace-nowrap"
+                className="gold-shimmer text-on-primary-container px-3.5 py-2 sm:px-4 sm:py-2 font-medium text-[13px] rounded-full shadow-md hover:scale-105 transition-all shrink-0 whitespace-nowrap min-h-[40px] flex items-center"
               >
-                Design →
+                <span>Design</span>
+                <span className="hidden xs:inline ml-1">→</span>
               </button>
             ) : (
               <button
                 onClick={() => setCurrentStep(3)}
                 disabled={placedBeads.length === 0}
-                className={`px-3 py-1.5 sm:px-4 sm:py-2 font-bold text-xs rounded-full shadow-md transition-all shrink-0 whitespace-nowrap ${
+                className={`px-3.5 py-2 sm:px-4 sm:py-2 font-medium text-[13px] rounded-full shadow-md transition-all shrink-0 whitespace-nowrap min-h-[40px] flex items-center ${
                   placedBeads.length === 0
                     ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
                     : "gold-shimmer text-on-primary-container hover:scale-105"
                 }`}
               >
-                Review →
+                <span>Review</span>
+                <span className="hidden xs:inline ml-1">→</span>
               </button>
             )}
           </div>
@@ -344,7 +347,7 @@ function BuilderContent() {
         {/* STEP 1: SELECT BEADS FOR TRAY */}
         {/* ========================================================================= */}
         {currentStep === 1 && (
-          <div className="flex-1 flex flex-col justify-between min-h-0 p-2.5 sm:p-4 md:p-6 max-w-6xl mx-auto w-full gap-3">
+          <div className="flex-1 flex flex-col justify-between min-h-0 p-3 sm:p-4 md:p-6 max-w-6xl mx-auto w-full gap-3">
             <div className="flex-1 min-h-0 bg-card rounded-2xl border border-border/80 p-3 sm:p-5 shadow-xs flex flex-col">
               <BeadLibrary
                 beads={beads}
@@ -356,20 +359,20 @@ function BuilderContent() {
               />
             </div>
 
-            {/* Step 1 Bottom Proceed Bar */}
-            <div className="w-full shrink-0">
-              <div className="flex flex-row justify-between items-center bg-card border border-border/80 p-3 sm:p-4 rounded-2xl shadow-sm gap-2">
-                <div className="text-xs flex items-center gap-2">
+            {/* Step 1 Bottom Sticky Proceed Bar with safe-area inset */}
+            <div className="w-full shrink-0 sticky bottom-0 z-30 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+              <div className="flex flex-row justify-between items-center bg-card/95 backdrop-blur-md border border-border/80 p-3 sm:p-4 rounded-2xl shadow-lg gap-2">
+                <div className="text-[13px] flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary text-base">shopping_bag</span>
                   <div>
                     <span className="text-muted-foreground font-medium hidden xs:inline">Tray Inventory: </span>
-                    <strong className="text-foreground font-bold">{trayBeads.length} Collected</strong>
+                    <strong className="text-foreground font-medium">{trayBeads.length} Collected</strong>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setCurrentStep(2)}
-                  className="px-4 py-2 sm:px-6 sm:py-2.5 gold-shimmer text-on-primary-container font-bold text-xs rounded-full shadow-md hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-1.5 shrink-0"
+                  className="px-5 py-2.5 sm:px-6 sm:py-2.5 gold-shimmer text-on-primary-container font-medium text-[13px] rounded-full shadow-md hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-1.5 shrink-0 min-h-[44px] cursor-pointer"
                 >
                   <span>Design Strand →</span>
                 </button>
@@ -382,7 +385,7 @@ function BuilderContent() {
         {/* STEP 2: DESIGN STRAND & CRAFTING TRAY */}
         {/* ========================================================================= */}
         {currentStep === 2 && (
-          <div className="flex-1 flex flex-col justify-between overflow-hidden p-2 sm:p-4 max-w-6xl mx-auto w-full gap-2.5">
+          <div className="flex-1 flex flex-col justify-between overflow-hidden p-2 sm:p-4 max-w-6xl mx-auto w-full gap-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             {/* Main Interactive Strand Canvas Stage */}
             <div className="flex-1 w-full min-h-0 flex items-center justify-center">
               <BraceletCanvas

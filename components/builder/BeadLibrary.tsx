@@ -49,7 +49,7 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
       {...listeners}
       {...attributes}
       onClick={handleToggle}
-      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl border transition-all cursor-grab active:cursor-grabbing select-none h-38 sm:h-44 ${
+      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer select-none min-h-[140px] sm:min-h-[170px] ${
         isSelected
           ? "border-primary ring-2 ring-primary/40 bg-primary/10 shadow-xs"
           : isInTray
@@ -58,15 +58,15 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
       } ${isDragging ? "opacity-30 scale-95 ring-2 ring-primary" : ""}`}
     >
       {isSelected ? (
-        <span className="absolute left-2 top-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-xs">
+        <span className="absolute left-2 top-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-xs">
           Active
         </span>
       ) : isInTray ? (
-        <span className="absolute left-2 top-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+        <span className="absolute left-2 top-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
           ✓ In Tray
         </span>
       ) : bead.isPremium || bead.price > 0 ? (
-        <span className="absolute left-2 top-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+        <span className="absolute left-2 top-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
           Premium
         </span>
       ) : null}
@@ -80,11 +80,11 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
       </div>
 
       <div className="w-full text-center space-y-1 mt-auto">
-        <span className="block text-xs font-bold text-foreground truncate px-0.5" title={bead.name}>
+        <span className="block text-[13px] font-medium text-foreground truncate px-0.5" title={bead.name}>
           {bead.name}
         </span>
-        <div className="flex items-center justify-between pt-1 border-t border-border/50 gap-1">
-          <span className="text-[11px] text-primary font-bold">
+        <div className="flex items-center justify-between pt-1 border-t border-border/50 gap-2">
+          <span className="text-[12px] text-primary font-medium">
             {bead.isPremium || bead.price > 0 ? `₹${bead.price}` : "Free"}
           </span>
           <button
@@ -92,7 +92,7 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
               e.stopPropagation();
               handleToggle();
             }}
-            className={`px-2 py-0.5 text-[10px] font-bold rounded-full transition-colors whitespace-nowrap ${
+            className={`min-h-[36px] px-2.5 py-1 text-[11px] font-medium rounded-full transition-colors whitespace-nowrap cursor-pointer active:scale-95 ${
               isInTray
                 ? "bg-emerald-600/15 text-emerald-600 hover:bg-destructive/10 hover:text-destructive"
                 : "bg-primary/10 hover:bg-primary/20 text-primary"
@@ -180,20 +180,20 @@ export function BeadLibrary({
   return (
     <div className="flex h-full flex-col gap-3.5 bg-card p-1 sm:p-2 font-sans select-none min-h-0">
       <div className="space-y-2.5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div>
-            <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+            <h2 className="font-display text-[14px] sm:text-lg font-medium text-foreground flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-xl">category</span>
               Bead Catalog
             </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Click "+ Collect" to add items into your Crafting Tray.</p>
+            <p className="text-[12px] text-muted-foreground mt-0.5">Click "+ Collect" to add items into your Crafting Tray.</p>
           </div>
           <button
             onClick={() => setIsUploadOpen(true)}
-            className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold rounded-full flex items-center gap-1.5 transition-all shadow-xs"
+            className="min-h-[40px] px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-[12px] font-medium rounded-full flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
           >
             <span className="material-symbols-outlined text-base">add_photo_alternate</span>
-            <span>+ Custom Bead</span>
+            <span className="hidden xs:inline">+ Custom Bead</span>
           </button>
         </div>
 
@@ -207,15 +207,15 @@ export function BeadLibrary({
             placeholder="Search beads, metals, stones..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3.5 py-2 bg-background border border-border/80 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-xs"
+            className="w-full pl-9 pr-3.5 py-2.5 min-h-[44px] bg-background border border-border/80 rounded-xl text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-xs"
           />
         </div>
       </div>
 
-      {/* Bead Grid - 2 columns on mobile, 3 on tablet, 4 on desktop */}
+      {/* Bead Grid - STRICT 2 columns on mobile (<640px), 3 on tablet, 4 on desktop */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 pr-0.5">
         {filtered.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-xs text-muted-foreground space-y-2">
+          <div className="col-span-full py-12 text-center text-[12px] text-muted-foreground space-y-2">
             <span className="material-symbols-outlined text-3xl opacity-40">inventory_2</span>
             <p>No beads found in this category.</p>
           </div>
