@@ -17,8 +17,10 @@ function TrayBeadItem({
     <button
       type="button"
       onClick={() => onTapBead(bead)}
-      className={`group relative flex flex-col items-center justify-between p-2.5 rounded-2xl bg-card border border-border/80 shadow-xs transition-all cursor-pointer select-none shrink-0 min-w-[84px] w-22 h-24 sm:w-26 sm:h-28 min-h-[48px] ${
-        isSwapMode ? "border-amber-500/80 bg-amber-500/5 hover:bg-amber-500/10" : "hover:border-primary/60 hover:bg-muted/30"
+      className={`group relative flex flex-col items-center justify-between p-2.5 rounded-2xl transition-all cursor-pointer select-none shrink-0 min-w-[84px] w-22 h-24 sm:w-26 sm:h-28 min-h-[48px] ${
+        isSelected || isSwapMode
+          ? "bg-transparent border border-transparent shadow-none"
+          : "bg-card border border-border/80 shadow-xs hover:border-primary/60 hover:bg-muted/30"
       }`}
       title={isSwapMode ? `Swap with ${bead.name}` : `${bead.name} • ${bead.material}`}
     >

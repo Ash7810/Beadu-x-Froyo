@@ -1,5 +1,8 @@
 import { PlacedBead, PricingResult, BraceletConfig, CordType } from "./types";
 
+export const MIN_BEAD_SIZE_MM = 6; // smallest bead in catalog
+export const REFERENCE_BEAD_SIZE_MM = 8; // baseline size for visual scaling
+
 export const CORD_PRICES: Record<CordType, number> = {
   elastic: 0,
   leather: 249,
@@ -15,7 +18,7 @@ export function getStrandSpecFromWrist(wristInches: number) {
   const totalCutInches = sanitizedWrist + knotExtensionInches;
   const capacityMm = Math.round(sanitizedWrist * 25.4);
   const lengthCm = Math.round(sanitizedWrist * 2.54 * 10) / 10;
-  const totalSlots = Math.max(10, Math.round(sanitizedWrist * 2.57));
+  const totalSlots = Math.max(10, Math.floor(capacityMm / MIN_BEAD_SIZE_MM));
   const freeSlotLimit = Math.max(6, Math.round(totalSlots * 0.66));
 
   return {
@@ -55,7 +58,7 @@ export function calculateStrandPhysicalCapacity(
     percentUsed,
     totalSlots: spec.totalSlots,
     freeSlotLimit: spec.freeSlotLimit,
-    isFull: remainingMm <= 4,
+    isFull: remainingMm <= 0,
   };
 }
 

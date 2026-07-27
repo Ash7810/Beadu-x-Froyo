@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useBraceletStore } from "@/store/braceletStore";
 import { Bead, PlacedBead } from "@/lib/types";
-import { calculateStrandPhysicalCapacity } from "@/lib/pricing";
+import { calculateStrandPhysicalCapacity, REFERENCE_BEAD_SIZE_MM } from "@/lib/pricing";
 
 export type ArcContourParams = {
   centerX: number;
@@ -84,7 +84,100 @@ function getUniformSlotPositions(totalSlots: number, params: ArcContourParams = 
     positions.push({ x, y, angle: tangentAngle });
   }
 
-  return { positions, totalArcLength: usableArcLength };
+  return { positions, totalArcLength: usableArcLength, rawArcLength: rawTotalArcLength };
+}
+
+/**
+ * Physics-based positioning: places beads along the arc proportional to their
+ * actual widthMm, so larger beads take more arc space.
+ * Returns a position for each placed bead (sorted by slotIndex).
+ */
+function getPhysicsBasedBeadPositions(
+  placedBeads: PlacedBead[],
+  params: ArcContourParams = DEFAULT_STRAND_ARC,
+  basePixelSize: number
+) {
+  if (placedBeads.length === 0) return [];
+
+  const SAMPLES = 300;
+  const angles: number[] = [];
+  const lengths: number[] = [0];
+  const { centerX, centerY, rx, ry, startAngle, endAngle } = params;
+
+  for (let i = 0; i <= SAMPLES; i++) {
+    const t = i / SAMPLES;
+    const a = startAngle + t * (endAngle - startAngle);
+    angles.push(a);
+    if (i > 0) {
+      const prevA = angles[i - 1];
+      const x1 = centerX + rx * Math.cos(prevA);
+      const y1 = centerY + ry * Math.sin(prevA);
+      const x2 = centerX + rx * Math.cos(a);
+      const y2 = centerY + ry * Math.sin(a);
+      lengths.push(lengths[i - 1] + Math.hypot(x2 - x1, y2 - y1));
+    }
+  }
+
+  const rawTotalArcLength = lengths[lengths.length - 1];
+  const usableStart = MARGIN_BUFFER_PX;
+  const usableEnd = Math.max(usableStart + 10, rawTotalArcLength - MARGIN_BUFFER_PX);
+  const usableLength = usableEnd - usableStart;
+
+  // Sort beads by slot index for sequential placement
+  const sorted = [...placedBeads].sort((a, b) => a.slotIndex - b.slotIndex);
+
+  // Calculate total physical width of all placed beads in arc-pixels
+  // Convert mm to arc-pixels proportionally
+  const totalBeadWidthMm = sorted.reduce((acc, b) => acc + (b.widthMm || b.sizeMm || 8), 0);
+  // Scale factor: how many arc-pixels per mm
+  const arcPixelsPerMm = usableLength / Math.max(totalBeadWidthMm, 1);
+  // But cap it so beads don't stretch beyond reasonable spacing
+  const effectiveScale = Math.min(arcPixelsPerMm, usableLength / (sorted.length * 6));
+
+  // Calculate gap: distribute remaining space as gaps between beads
+  const totalBeadArcWidth = sorted.reduce((acc, b) => {
+    const w = (b.widthMm || b.sizeMm || 8) * effectiveScale;
+    return acc + Math.max(w, basePixelSize * 0.5);
+  }, 0);
+  const totalGap = Math.max(0, usableLength - totalBeadArcWidth);
+  const gapPerBead = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+
+  // Position each bead sequentially along the arc
+  const positions: { x: number; y: number; angle: number; beadSizePx: number; placedId: string }[] = [];
+  let cursor = usableStart;
+
+  for (const bead of sorted) {
+    const beadWidthMm = bead.widthMm || bead.sizeMm || 8;
+    const beadArcWidth = Math.max(beadWidthMm * effectiveScale, basePixelSize * 0.5);
+    const beadCenter = cursor + beadArcWidth / 2;
+
+    // Find the position on the arc at this distance
+    let idx = 0;
+    while (idx < lengths.length - 1 && lengths[idx + 1] < beadCenter) {
+      idx++;
+    }
+    const len1 = lengths[idx];
+    const len2 = lengths[idx + 1] || len1;
+    const a1 = angles[idx];
+    const a2 = angles[idx + 1] || a1;
+    const frac = len2 > len1 ? (beadCenter - len1) / (len2 - len1) : 0;
+    const angle = a1 + frac * (a2 - a1);
+
+    const x = centerX + rx * Math.cos(angle);
+    const y = centerY + ry * Math.sin(angle);
+    const dx = -rx * Math.sin(angle);
+    const dy = ry * Math.cos(angle);
+    const tangentAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    // Visual bead size proportional to its sizeMm
+    const beadSizePx = basePixelSize * ((bead.sizeMm || 8) / REFERENCE_BEAD_SIZE_MM);
+
+    positions.push({ x, y, angle: tangentAngle, beadSizePx, placedId: bead.placedId });
+
+    cursor += beadArcWidth + gapPerBead;
+  }
+
+  return positions;
 }
 
 // Closed-loop product preview slot math (360-degree full wrap)
@@ -137,6 +230,13 @@ function getClosedLoopSlotPositions(totalSlots: number) {
   }
 
   return { positions, totalArcLength };
+}
+
+// Compute a base pixel size for beads that looks good at the given slot density
+function computeBaseBeadSize(totalArcLength: number, beadCount: number) {
+  if (beadCount <= 0) return 32;
+  const stepDistance = totalArcLength / Math.max(1, beadCount);
+  return Math.max(22, Math.min(44, stepDistance * 0.92));
 }
 
 function SlotItem({
@@ -206,7 +306,7 @@ function PlacedBeadItem({
     setDropRef(node as unknown as HTMLElement);
   };
 
-  const beadSize = baseBeadSize * (placed.size || 1);
+  const beadSize = baseBeadSize * ((placed.sizeMm || 8) / REFERENCE_BEAD_SIZE_MM);
   const rotationAngle = (pos.angle || 0) + (placed.rotation || 0);
 
   const clipId = `bead-clip-${placed.placedId.replace(/[^a-zA-Z0-9]/g, "-")}`;
@@ -229,9 +329,10 @@ function PlacedBeadItem({
       filter="url(#bead-shadow)"
       className={
         readOnly
-          ? "cursor-default select-none pointer-events-none"
-          : `cursor-pointer select-none ${isDragging ? "opacity-30" : ""}`
+          ? "cursor-default select-none pointer-events-none outline-none"
+          : `cursor-pointer select-none outline-none focus:outline-none ${isDragging ? "opacity-30" : ""}`
       }
+      style={{ outline: "none" }}
     >
       <defs>
         <clipPath id={clipId}>
@@ -351,10 +452,15 @@ export function BraceletCanvas({
     ? [...placedBeads].sort((a, b) => a.slotIndex - b.slotIndex)
     : null;
 
-  const stepDistance = viewMode === "preview"
-    ? totalArcLength / Math.max(1, previewSlotCount)
-    : totalArcLength / (config.totalSlots - 1 || 1);
-  const baseBeadSize = Math.max(22, Math.min(44, stepDistance * 1.02));
+  const baseBeadSize = viewMode === "preview"
+    ? computeBaseBeadSize(totalArcLength, previewSlotCount)
+    : computeBaseBeadSize(totalArcLength, Math.max(placedBeads.length, config.totalSlots));
+
+  // Physics-based positions for strand view — positions beads proportionally by their width
+  const physicsPositions = useMemo(() => {
+    if (viewMode !== "strand" || placedBeads.length === 0) return [];
+    return getPhysicsBasedBeadPositions(placedBeads, DEFAULT_STRAND_ARC, baseBeadSize);
+  }, [viewMode, placedBeads, baseBeadSize]);
 
   const { centerX, centerY, rx, ry, startAngle, endAngle } = DEFAULT_STRAND_ARC;
 

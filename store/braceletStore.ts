@@ -175,7 +175,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     const original = state.placedBeads.find((b) => b.placedId === placedId);
     if (!original) return;
     const physCap = calculateStrandPhysicalCapacity(state.placedBeads, state.config);
-    const beadMm = original.sizeMm || Math.round(8 * (original.size || 1));
+    const beadMm = original.widthMm || original.sizeMm || Math.round(8 * (original.size || 1));
     if (physCap.usedMm + beadMm > physCap.capacityMm) return;
 
     const openSlot = findNextOpenSlot(state.placedBeads, state.config.totalSlots);
@@ -207,7 +207,20 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
       wristSizeMm: Math.round(spec.wristInches * 25.4),
     };
     // Trim beads that exceed the new totalSlots capacity
-    const filteredBeads = state.placedBeads.filter((b) => b.slotIndex < spec.totalSlots);
+    let filteredBeads = state.placedBeads.filter((b) => b.slotIndex < spec.totalSlots);
+    // Also validate physical fit — drop beads from the end if total width overflows new capacity
+    const newCapacityMm = Math.round(spec.wristInches * 25.4);
+    const sortedBySlot = [...filteredBeads].sort((a, b) => a.slotIndex - b.slotIndex);
+    let usedMm = 0;
+    const fittingBeads: typeof filteredBeads = [];
+    for (const bead of sortedBySlot) {
+      const w = bead.widthMm || bead.sizeMm || Math.round(8 * (bead.size || 1));
+      if (usedMm + w <= newCapacityMm) {
+        usedMm += w;
+        fittingBeads.push(bead);
+      }
+    }
+    filteredBeads = fittingBeads;
     set({
       config: newConfig,
       placedBeads: filteredBeads,
