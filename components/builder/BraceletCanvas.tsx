@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useDroppable, useDraggable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useBraceletStore } from "@/store/braceletStore";
 import { Bead, PlacedBead } from "@/lib/types";
 import { calculateStrandPhysicalCapacity } from "@/lib/pricing";
@@ -13,14 +13,14 @@ export type ArcContourParams = {
   endAngle: number;
 };
 
-// Comfortably proportioned Strand arc geometry positioned directly near top bar with balanced padding
+// Perfectly proportioned Strand arc geometry centered in 750×200 viewBox
 const DEFAULT_STRAND_ARC: ArcContourParams = {
   centerX: 375,
-  centerY: 75,
+  centerY: 50,
   rx: 310,
-  ry: 105,
-  startAngle: Math.PI * 0.86,
-  endAngle: Math.PI * 0.14,
+  ry: 90,
+  startAngle: Math.PI * 0.84,
+  endAngle: Math.PI * 0.16,
 };
 
 const CANVAS_WIDTH = 750;
@@ -139,7 +139,7 @@ function getClosedLoopSlotPositions(totalSlots: number) {
   return { positions, totalArcLength };
 }
 
-function DroppableSlotItem({
+function SlotItem({
   slotIndex,
   pos,
   baseBeadSize,
@@ -153,45 +153,23 @@ function DroppableSlotItem({
   viewMode?: "strand" | "preview";
   onSelectSlot: (slotIndex: number) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `slot-${slotIndex}`,
-    data: { slotIndex },
-  });
-
   const hitRadius = Math.max(26, baseBeadSize / 2 + 10);
 
   return (
     <g
-      ref={(node: SVGGElement | null) => setNodeRef(node as unknown as HTMLElement)}
       onClick={() => onSelectSlot(slotIndex)}
       className="cursor-pointer group"
     >
-      {/* Large invisible hit box for effortless drag & touch drop */}
       <circle cx={pos.x} cy={pos.y} r={hitRadius} fill="transparent" />
-
-      {/* Active Drag-Hover Drop Target Indicator Halo */}
-      {isOver && (
-        <circle
-          cx={pos.x}
-          cy={pos.y}
-          r={baseBeadSize / 2 + 7}
-          fill="rgba(212, 175, 55, 0.2)"
-          stroke="#d4af37"
-          strokeWidth="2.5"
-          strokeDasharray="4 2"
-          className="animate-spin-slow"
-        />
-      )}
     </g>
   );
 }
 
-function DraggablePlacedBeadItem({
+function PlacedBeadItem({
   placed,
   pos,
   baseBeadSize,
   isSelected,
-  viewMode = "strand",
   readOnly = false,
   onSelect,
 }: {
@@ -237,10 +215,7 @@ function DraggablePlacedBeadItem({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (readOnly) return;
-    // Ignore residual click events fired immediately after a drag-and-drop placement operation (< 250ms)
-    if (Date.now() - dragEndedAtRef.current < 250) {
-      return;
-    }
+    if (Date.now() - dragEndedAtRef.current < 250) return;
     onSelect();
   };
 
@@ -255,9 +230,7 @@ function DraggablePlacedBeadItem({
       className={
         readOnly
           ? "cursor-default select-none pointer-events-none"
-          : `cursor-grab active:cursor-grabbing touch-none select-none transition-transform duration-200 ${
-              isDragging ? "opacity-40 scale-125 font-bold" : "hover:scale-115"
-            }`
+          : `cursor-pointer select-none ${isDragging ? "opacity-30" : ""}`
       }
     >
       <defs>
@@ -266,12 +239,11 @@ function DraggablePlacedBeadItem({
         </clipPath>
       </defs>
 
-      {/* Invisible hit circle to guarantee mouse drag and click capture */}
       {!readOnly && (
-        <circle cx="0" cy="0" r={Math.max(20, beadSize / 2 + 4)} fill="transparent" className="cursor-grab active:cursor-grabbing" />
+        <circle cx="0" cy="0" r={Math.max(20, beadSize / 2 + 4)} fill="transparent" className="cursor-pointer" />
       )}
 
-      {/* Selected Bead Indicator Halo */}
+      {/* Selected Bead Ring */}
       {isSelected && (
         <circle
           r={beadSize / 2 + 6}
@@ -279,25 +251,21 @@ function DraggablePlacedBeadItem({
           stroke="#d4af37"
           strokeWidth="2.5"
           strokeDasharray="4 2"
-          className="animate-spin-slow"
         />
       )}
 
-      {/* Swap Target Indicator Halo (when hovering another bead over this placed bead) */}
+      {/* Drag Hover Target Ring */}
       {isOver && !isDragging && (
         <circle
           r={beadSize / 2 + 7}
           fill="rgba(212, 175, 55, 0.25)"
           stroke="#d4af37"
           strokeWidth="3"
-          strokeDasharray="4 2"
-          className="animate-pulse"
         />
       )}
 
       {isCustomBead ? (
         <g>
-          {/* Custom Photo Bead Glass Cabochon Medallion */}
           <image
             href={placed.imageUrl}
             x={-beadSize / 2}
@@ -307,7 +275,6 @@ function DraggablePlacedBeadItem({
             preserveAspectRatio="xMidYMid slice"
             clipPath={`url(#${clipId})`}
           />
-          {/* Glass Dome Highlight Shine Overlay */}
           <circle cx="0" cy="0" r={beadSize / 2} fill="url(#cabochon-shine)" pointerEvents="none" />
         </g>
       ) : (
@@ -324,10 +291,10 @@ function DraggablePlacedBeadItem({
   );
 }
 
-function TrashZoneDropTarget({ onClearStrand }: { onClearStrand: () => void }) {
+function ClearStrandButton({ onClearStrand }: { onClearStrand: () => void }) {
   const { setNodeRef, isOver } = useDroppable({
     id: "trash-zone",
-    data: { type: "trash" },
+    data: { type: "trash-zone" },
   });
 
   const handleClick = () => {
@@ -338,14 +305,14 @@ function TrashZoneDropTarget({ onClearStrand }: { onClearStrand: () => void }) {
 
   return (
     <button
-      ref={(node: HTMLButtonElement | null) => setNodeRef(node as unknown as HTMLElement)}
+      ref={setNodeRef}
       onClick={handleClick}
       className={`w-8 h-8 rounded-full border transition-all shadow-xs flex items-center justify-center ml-2 ${
         isOver
-          ? "bg-destructive text-white border-destructive scale-110 shadow-md ring-2 ring-destructive/40 animate-pulse"
+          ? "bg-destructive text-white border-destructive scale-125 ring-4 ring-destructive/30"
           : "bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 hover:border-destructive/60"
       }`}
-      title="Clear entire strand design"
+      title="Clear strand or drag bead here to delete"
     >
       <span className="material-symbols-outlined text-sm">delete_forever</span>
     </button>
@@ -355,7 +322,8 @@ function TrashZoneDropTarget({ onClearStrand }: { onClearStrand: () => void }) {
 type Props = {
   allBeads?: Bead[];
   onSelectSlot?: (slotIndex: number) => void;
-  onStartSwap?: (placedBead: PlacedBead) => void;
+  onSelectPlacedBead?: (placedBead: PlacedBead) => void;
+  selectedPlacedBeadId?: string | null;
   isSwapMode?: boolean;
   hasSelectedTrayBead?: boolean;
   compact?: boolean;
@@ -365,16 +333,16 @@ type Props = {
 
 export function BraceletCanvas({
   onSelectSlot,
-  onStartSwap,
+  onSelectPlacedBead,
+  selectedPlacedBeadId,
   isSwapMode = false,
   hasSelectedTrayBead = false,
   compact = false,
   readOnly = false,
   defaultViewMode,
 }: Props) {
-  const { placedBeads, config, removeBead, rotateBead, duplicateBead, setWristInches, reset, lastError, clearError } = useBraceletStore();
+  const { placedBeads, config, removeBead, setWristInches, reset, lastError, clearError } = useBraceletStore();
   const physCap = calculateStrandPhysicalCapacity(placedBeads, config);
-  const [selectedPlacedBead, setSelectedPlacedBead] = useState<PlacedBead | null>(null);
   const [viewMode, setViewMode] = useState<"strand" | "preview">(defaultViewMode || (compact ? "preview" : "strand"));
   const [mounted, setMounted] = useState(false);
   const [wristInputVal, setWristInputVal] = useState(config.wristInches.toFixed(1));
@@ -403,7 +371,18 @@ export function BraceletCanvas({
   const baseBeadSize = Math.max(22, Math.min(44, stepDistance * 1.02));
 
   const { centerX, centerY, rx, ry, startAngle, endAngle } = DEFAULT_STRAND_ARC;
-  const strandPathData = `M ${centerX + rx * Math.cos(startAngle)} ${centerY + ry * Math.sin(startAngle)} A ${rx} ${ry} 0 0 0 ${centerX + rx * Math.cos(endAngle)} ${centerY + ry * Math.sin(endAngle)}`;
+
+  // Generate exact SVG path data by sampling points along the identical arc function used for slot calculation
+  const PATH_SAMPLES = 60;
+  const pathPoints: string[] = [];
+  for (let i = 0; i <= PATH_SAMPLES; i++) {
+    const t = i / PATH_SAMPLES;
+    const a = startAngle + t * (endAngle - startAngle);
+    const px = centerX + rx * Math.cos(a);
+    const py = centerY + ry * Math.sin(a);
+    pathPoints.push(`${i === 0 ? "M" : "L"} ${px.toFixed(2)} ${py.toFixed(2)}`);
+  }
+  const strandPathData = pathPoints.join(" ");
 
   const handleWristInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valStr = e.target.value;
@@ -541,7 +520,7 @@ export function BraceletCanvas({
             </div>
 
             {/* Icon-Only Clear Strand Button - 40x40px touch zone */}
-            <TrashZoneDropTarget onClearStrand={reset} />
+            <ClearStrandButton onClearStrand={reset} />
           </div>
         </div>
       )}
@@ -578,12 +557,12 @@ export function BraceletCanvas({
               <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.12" />
             </filter>
 
-            {/* Gold Metallic Cord Gradient */}
-            <linearGradient id="gold-strand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#b8860b" />
-              <stop offset="35%" stopColor="#fff8dc" />
-              <stop offset="70%" stopColor="#d4af37" />
-              <stop offset="100%" stopColor="#8b6508" />
+            {/* Pure Crystal Silicone Elastic Stretch Cord Gradient */}
+            <linearGradient id="elastic-strand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#d1d5db" stopOpacity="0.85" />
+              <stop offset="35%" stopColor="#ffffff" stopOpacity="1" />
+              <stop offset="70%" stopColor="#f3f4f6" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#9ca3af" stopOpacity="0.8" />
             </linearGradient>
           </defs>
 
@@ -597,23 +576,23 @@ export function BraceletCanvas({
                 rx={CLOSED_LOOP_RX + 6}
                 ry={CLOSED_LOOP_RY + 6}
                 fill="none"
-                stroke="rgba(0,0,0,0.18)"
-                strokeWidth="20"
-                filter="blur(10px)"
+                stroke="rgba(0,0,0,0.14)"
+                strokeWidth="16"
+                filter="blur(8px)"
               />
 
-              {/* Closed Loop Base Cord Cable */}
+              {/* Crystal Silicone Elastic Base Cord */}
               <ellipse
                 cx={CLOSED_LOOP_CENTER_X}
                 cy={CLOSED_LOOP_CENTER_Y}
                 rx={CLOSED_LOOP_RX}
                 ry={CLOSED_LOOP_RY}
                 fill="none"
-                stroke="url(#gold-strand-grad)"
-                strokeWidth="5"
+                stroke="url(#elastic-strand-grad)"
+                strokeWidth="3.5"
               />
 
-              {/* Specular Highlight Cord Ring */}
+              {/* Crystal Core Gloss Highlight Ring */}
               <ellipse
                 cx={CLOSED_LOOP_CENTER_X}
                 cy={CLOSED_LOOP_CENTER_Y}
@@ -621,69 +600,67 @@ export function BraceletCanvas({
                 ry={CLOSED_LOOP_RY}
                 fill="none"
                 stroke="#ffffff"
-                strokeWidth="1.5"
-                opacity="0.6"
+                strokeWidth="1.2"
+                opacity="0.9"
               />
 
-              {/* Top Jewelry Knot Clasp Terminal (12 o'clock Loop Join) */}
+              {/* Top Crystal Knot Join (12 o'clock Loop Join) */}
               <g transform={`translate(${CLOSED_LOOP_CENTER_X}, ${CLOSED_LOOP_CENTER_Y - CLOSED_LOOP_RY})`}>
-                <circle r="9" fill="url(#gold-strand-grad)" stroke="#735c00" strokeWidth="1.5" filter="url(#bead-shadow)" />
-                <circle r="4" fill="#ffffff" opacity="0.7" />
+                <circle r="5" fill="url(#elastic-strand-grad)" stroke="#9ca3af" strokeWidth="1" filter="url(#bead-shadow)" />
+                <circle r="2" fill="#ffffff" opacity="0.95" />
               </g>
             </g>
           ) : (
             /* Strand View Open Arc Cord Cable */
             <g className="animate-in fade-in duration-300">
-              {/* Underlying Cable Shadow */}
+              {/* Underlying Soft Shadow */}
               <path
                 d={strandPathData}
                 fill="none"
-                stroke="rgba(0,0,0,0.25)"
-                strokeWidth="9"
+                stroke="rgba(0,0,0,0.15)"
+                strokeWidth="6"
                 strokeLinecap="round"
               />
 
-              {/* Primary Cord Body */}
+              {/* Primary Crystal Silicone Cord */}
               <path
                 d={strandPathData}
                 fill="none"
-                stroke="url(#gold-strand-grad)"
-                strokeWidth="5"
+                stroke="url(#elastic-strand-grad)"
+                strokeWidth="3.5"
                 strokeLinecap="round"
               />
 
-              {/* Core Metallic Specular Shine */}
+              {/* Crystal Specular Gloss Line */}
               <path
                 d={strandPathData}
                 fill="none"
                 stroke="#ffffff"
-                strokeWidth="1.5"
-                opacity="0.6"
+                strokeWidth="1.2"
+                opacity="0.9"
                 strokeLinecap="round"
               />
 
-              {/* Left Clasp Terminal */}
+              {/* Left Silicone Knot End Cap */}
               <g transform={`translate(${centerX + rx * Math.cos(startAngle)}, ${centerY + ry * Math.sin(startAngle)})`}>
-                <circle r="10" fill="url(#gold-strand-grad)" stroke="#735c00" strokeWidth="1.5" filter="url(#bead-shadow)" />
-                <circle r="5" fill="#ffffff" opacity="0.7" />
-                <rect x="-14" y="-3" width="7" height="6" rx="2" fill="#d4af37" stroke="#735c00" strokeWidth="1" />
+                <circle r="5.5" fill="url(#elastic-strand-grad)" stroke="#9ca3af" strokeWidth="1" filter="url(#bead-shadow)" />
+                <circle r="2.5" fill="#ffffff" opacity="0.95" />
               </g>
 
-              {/* Right Clasp Terminal */}
+              {/* Right Silicone Knot End Cap */}
               <g transform={`translate(${centerX + rx * Math.cos(endAngle)}, ${centerY + ry * Math.sin(endAngle)})`}>
-                <circle r="10" fill="url(#gold-strand-grad)" stroke="#735c00" strokeWidth="1.5" filter="url(#bead-shadow)" />
-                <circle r="5" fill="#ffffff" opacity="0.7" />
-                <rect x="7" y="-3" width="7" height="6" rx="2" fill="#d4af37" stroke="#735c00" strokeWidth="1" />
+                <circle r="5.5" fill="url(#elastic-strand-grad)" stroke="#9ca3af" strokeWidth="1" filter="url(#bead-shadow)" />
+                <circle r="2.5" fill="#ffffff" opacity="0.95" />
               </g>
             </g>
           )}
 
-          {/* Droppable Slot Target Elements */}
+          {/* Slot Target Elements */}
           {slots.map((pos, index) => {
             const isTaken = placedBeads.some((b) => b.slotIndex === index);
             return (
-              <DroppableSlotItem
-                key={`droppable-slot-${index}`}
+              <SlotItem
+                key={`slot-${index}`}
                 slotIndex={index}
                 pos={pos}
                 isTaken={isTaken}
@@ -699,10 +676,10 @@ export function BraceletCanvas({
           {(viewMode === "preview" ? sortedBeadsForPreview! : placedBeads).map((placed, idx) => {
             const pos = viewMode === "preview" ? slots[idx] : slots[placed.slotIndex];
             if (!pos) return null;
-            const isSelected = selectedPlacedBead?.placedId === placed.placedId;
+            const isSelected = selectedPlacedBeadId === placed.placedId;
 
             return (
-              <DraggablePlacedBeadItem
+              <PlacedBeadItem
                 key={placed.placedId}
                 placed={placed}
                 pos={pos}
@@ -710,7 +687,7 @@ export function BraceletCanvas({
                 isSelected={isSelected}
                 viewMode={viewMode}
                 readOnly={readOnly}
-                onSelect={() => setSelectedPlacedBead(placed)}
+                onSelect={() => onSelectPlacedBead && onSelectPlacedBead(placed)}
               />
             );
           })}
@@ -722,93 +699,10 @@ export function BraceletCanvas({
         <div className="w-full text-center py-1.5 px-3 bg-muted/40 rounded-xl border border-border/50 text-[12px] font-medium text-muted-foreground flex items-center justify-center gap-1.5 z-10 my-1">
           <span className="material-symbols-outlined text-sm text-primary">touch_app</span>
           <span>
-            {isSwapMode
-              ? "Tap a bead in the tray below to swap with the selected bead."
-              : hasSelectedTrayBead
-              ? "Tap an open spot on the string to place your selected bead."
-              : "Tap a bead below, then tap the string to place it. Tap a placed bead to swap or remove it."}
+            {hasSelectedTrayBead
+              ? "Tap an empty slot to place your bead, or tap an existing bead to swap them directly."
+              : "Select a bead below to add or swap. On desktop/tablet, drag beads to swap positions or drag to trash."}
           </span>
-        </div>
-      )}
-
-      {/* Selected Bead Actions Drawer: Mobile Bottom Sheet (<640px) vs Floating Card (>=640px) */}
-      {!compact && selectedPlacedBead && (
-        <div className="fixed inset-x-0 bottom-0 sm:relative sm:inset-auto w-full bg-card border-t sm:border border-border/80 rounded-t-3xl sm:rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xl z-50 animate-in slide-in-from-bottom duration-300 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4">
-          {/* Top Drag Handle Affordance on Mobile */}
-          <div className="w-12 h-1 bg-muted-foreground/30 rounded-full sm:hidden mb-1" />
-
-          {/* Isolated Top-Right Close Affordance */}
-          <button
-            onClick={() => setSelectedPlacedBead(null)}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center justify-center shadow-xs cursor-pointer active:scale-95"
-            title="Close details"
-          >
-            <span className="material-symbols-outlined text-sm">close</span>
-          </button>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto pr-8 sm:pr-0">
-            <img
-              src={selectedPlacedBead.imageUrl}
-              alt={selectedPlacedBead.name}
-              className="w-12 h-12 object-contain p-1 bg-muted/60 rounded-xl border border-border/80 shadow-xs"
-            />
-            <div>
-              <h4 className="text-[14px] font-medium text-foreground">{selectedPlacedBead.name}</h4>
-              <p className="text-[12px] text-muted-foreground mt-0.5">
-                Bead {placedBeads.findIndex((b) => b.placedId === selectedPlacedBead.placedId) + 1} of {placedBeads.length} • {selectedPlacedBead.material} •{" "}
-                <span className="text-primary font-medium">
-                  {selectedPlacedBead.isPremium ? `₹${selectedPlacedBead.price}` : "Free"}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap justify-stretch">
-            {/* Swap Button */}
-            {onStartSwap && (
-              <button
-                onClick={() => {
-                  const bead = selectedPlacedBead;
-                  setSelectedPlacedBead(null);
-                  onStartSwap(bead);
-                }}
-                className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[13px] font-medium rounded-xl hover:bg-amber-500/20 transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-              >
-                <span className="material-symbols-outlined text-base">swap_horiz</span>
-                <span>Swap</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => duplicateBead(selectedPlacedBead.placedId)}
-              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 bg-muted/80 text-foreground text-[13px] font-medium rounded-xl hover:bg-muted transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-            >
-              <span className="material-symbols-outlined text-base">content_copy</span>
-              <span>Duplicate</span>
-            </button>
-
-            {selectedPlacedBead.rotationAllowed && (
-              <button
-                onClick={() => rotateBead(selectedPlacedBead.placedId, (selectedPlacedBead.rotation + 45) % 360)}
-                className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 bg-muted/80 text-foreground text-[13px] font-medium rounded-xl hover:bg-muted transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-              >
-                <span className="material-symbols-outlined text-base">rotate_right</span>
-                <span>Rotate</span>
-              </button>
-            )}
-
-            {/* Visually Lighter Red Remove Button */}
-            <button
-              onClick={() => {
-                removeBead(selectedPlacedBead.placedId);
-                setSelectedPlacedBead(null);
-              }}
-              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 border border-destructive/40 text-destructive bg-destructive/5 hover:bg-destructive/15 text-[13px] font-medium rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-            >
-              <span className="material-symbols-outlined text-base">delete</span>
-              <span>Remove</span>
-            </button>
-          </div>
         </div>
       )}
     </div>

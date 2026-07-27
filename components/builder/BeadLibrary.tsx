@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, memo } from "react";
-import { useDraggable } from "@dnd-kit/core";
 import { Bead } from "@/lib/types";
 
 type Props = {
@@ -13,9 +12,7 @@ type Props = {
   onRemoveFromTrayByBeadId?: (beadId: string) => void;
 };
 
-
-
-export const DraggableBeadItem = memo(function DraggableBeadItem({
+export const BeadItem = memo(function BeadItem({
   bead,
   isSelected,
   isInTray,
@@ -30,11 +27,6 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
   onAddToTray: (bead: Bead) => void;
   onRemoveFromTrayByBeadId?: (beadId: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `catalog-${bead.id}`,
-    data: { type: "catalog-bead", bead },
-  });
-
   const handleToggle = () => {
     if (isInTray) {
       onRemoveFromTrayByBeadId?.(bead.id);
@@ -45,17 +37,10 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
 
   return (
     <div
-      ref={(node: HTMLDivElement | null) => setNodeRef(node as unknown as HTMLElement)}
-      {...listeners}
-      {...attributes}
       onClick={handleToggle}
-      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer select-none min-h-[140px] sm:min-h-[170px] ${
-        isSelected
-          ? "border-primary ring-2 ring-primary/40 bg-primary/10 shadow-xs"
-          : isInTray
-            ? "border-emerald-500/50 bg-emerald-500/5 hover:bg-emerald-500/10 shadow-xs"
-            : "border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 hover:shadow-md"
-      } ${isDragging ? "opacity-30 scale-95 ring-2 ring-primary" : ""}`}
+      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition-all cursor-pointer select-none min-h-[140px] sm:min-h-[170px] ${
+        isInTray ? "border-emerald-500/50 bg-emerald-500/5 hover:bg-emerald-500/10" : ""
+      }`}
     >
       {isSelected ? (
         <span className="absolute left-2 top-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-xs">
@@ -71,11 +56,13 @@ export const DraggableBeadItem = memo(function DraggableBeadItem({
         </span>
       ) : null}
 
-      <div className="w-12 h-12 sm:w-16 sm:h-16 my-1 flex items-center justify-center group-hover:scale-110 transition-transform">
+      <div className={`relative w-12 h-12 sm:w-16 sm:h-16 my-1 flex items-center justify-center rounded-full transition-all ${
+        isSelected ? "ring-4 ring-primary ring-offset-2 ring-offset-background scale-105" : "group-hover:scale-105"
+      }`}>
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border border-primary/10"
+          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border border-primary/20"
         />
       </div>
 
@@ -221,7 +208,7 @@ export function BeadLibrary({
           </div>
         ) : (
           filtered.map((bead) => (
-            <DraggableBeadItem
+            <BeadItem
               key={bead.id}
               bead={bead}
               isSelected={activeBeadId === bead.id}

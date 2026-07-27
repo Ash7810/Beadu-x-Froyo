@@ -17,22 +17,18 @@ function TrayBeadItem({
     <button
       type="button"
       onClick={() => onTapBead(bead)}
-      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border shadow-xs transition-all cursor-pointer select-none shrink-0 min-w-[76px] w-20 h-22 sm:w-24 sm:h-26 min-h-[44px] ${
-        isSelected
-          ? "border-primary ring-4 ring-primary/40 bg-primary/10 scale-105"
-          : isSwapMode
-          ? "border-amber-500/80 ring-2 ring-amber-500/30 hover:scale-105 bg-amber-500/10"
-          : "border-border/80 hover:border-primary/60 hover:bg-muted/30"
+      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border border-border/80 shadow-xs transition-all cursor-pointer select-none shrink-0 min-w-[76px] w-20 h-22 sm:w-24 sm:h-26 min-h-[44px] ${
+        isSwapMode ? "border-amber-500/80 bg-amber-500/5 hover:bg-amber-500/10" : "hover:border-primary/60 hover:bg-muted/30"
       }`}
       title={isSwapMode ? `Swap with ${bead.name}` : `${bead.name} • ${bead.material}`}
     >
-      <div className="w-11 h-11 sm:w-13 sm:h-13 my-0.5 flex items-center justify-center group-hover:scale-110 transition-transform">
+      <div className={`relative w-11 h-11 sm:w-13 sm:h-13 my-0.5 flex items-center justify-center rounded-full transition-all ${
+        isSelected ? "ring-4 ring-primary ring-offset-2 ring-offset-background scale-105" : "group-hover:scale-105"
+      }`}>
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className={`w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border ${
-            isSelected ? "border-primary" : "border-primary/20"
-          }`}
+          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border border-primary/20"
         />
       </div>
 

@@ -14,6 +14,7 @@ type BraceletState = {
 
   addBead: (bead: Bead, slotIndex: number) => boolean;
   swapBead: (placedId: string, newBead: Bead) => boolean;
+  swapPlacedBeads: (placedIdA: string, placedIdB: string) => void;
   removeBead: (placedId: string) => void;
   clearError: () => void;
   moveBead: (placedId: string, newSlotIndex: number) => void;
@@ -128,6 +129,24 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
   removeBead: (placedId) => {
     const state = get();
     const next = state.placedBeads.filter((b) => b.placedId !== placedId);
+    set(pushHistory(state, next));
+  },
+
+  swapPlacedBeads: (placedIdA, placedIdB) => {
+    const state = get();
+    const beadA = state.placedBeads.find((b) => b.placedId === placedIdA);
+    const beadB = state.placedBeads.find((b) => b.placedId === placedIdB);
+    if (!beadA || !beadB) return;
+
+    const slotA = beadA.slotIndex;
+    const slotB = beadB.slotIndex;
+
+    const next = state.placedBeads.map((b) => {
+      if (b.placedId === placedIdA) return { ...b, slotIndex: slotB };
+      if (b.placedId === placedIdB) return { ...b, slotIndex: slotA };
+      return b;
+    });
+
     set(pushHistory(state, next));
   },
 

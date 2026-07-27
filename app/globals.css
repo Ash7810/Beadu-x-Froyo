@@ -150,7 +150,9 @@
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   }
   body {
-    @apply bg-background text-foreground tracking-normal antialiased;
+    @apply bg-background text-foreground tracking-normal antialiased select-none;
+    touch-action: manipulation;
+    -webkit-user-drag: none;
   }
 }
 
