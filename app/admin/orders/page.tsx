@@ -90,6 +90,98 @@ function DeleteButton({ id }: { id: string }) {
   );
 }
 
+// ─── Edit Order Modal/Form ──────────────────────────────────────────────────
+function EditOrderForm({ order }: { order: Order }) {
+  return (
+    <details className="relative">
+      <summary className="cursor-pointer px-2.5 py-1 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-lg flex items-center gap-1 select-none">
+        <span className="material-symbols-outlined text-sm">edit</span>
+        Edit
+      </summary>
+      <div className="absolute right-0 top-8 z-50 w-72 bg-card border border-border rounded-xl p-4 shadow-xl space-y-3 animate-in fade-in">
+        <h4 className="text-xs font-bold text-foreground flex items-center justify-between">
+          Edit Order #{order.id.slice(0, 6)}
+        </h4>
+        <form
+          action={async (formData: FormData) => {
+            "use server";
+            const { updateOrderDetails } = await import("./actions");
+            await updateOrderDetails(order.id, formData);
+          }}
+          className="space-y-2 text-xs"
+        >
+          <div>
+            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Customer Name</label>
+            <input
+              name="customer_name"
+              defaultValue={order.customer_name || ""}
+              className="w-full px-2 py-1 bg-background border border-border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Email</label>
+            <input
+              name="email"
+              type="email"
+              defaultValue={order.email || ""}
+              className="w-full px-2 py-1 bg-background border border-border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Phone</label>
+            <input
+              name="phone"
+              defaultValue={order.phone || ""}
+              className="w-full px-2 py-1 bg-background border border-border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Wrist (Inches)</label>
+            <input
+              name="wrist_inches"
+              type="number"
+              step="0.1"
+              defaultValue={order.wrist_inches || 7.0}
+              className="w-full px-2 py-1 bg-background border border-border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Address</label>
+            <textarea
+              name="address"
+              rows={2}
+              defaultValue={order.address || ""}
+              className="w-full px-2 py-1 bg-background border border-border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Status</label>
+            <select
+              name="status"
+              defaultValue={order.status}
+              className="w-full px-2 py-1 bg-background border border-border rounded-md"
+            >
+              {ALL_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_LABELS[s]?.label ?? s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="pt-1 flex gap-2">
+            <button
+              type="submit"
+              className="w-full py-1.5 bg-primary text-primary-foreground font-bold rounded-md hover:opacity-90 text-xs"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </details>
+  );
+}
+
 // ─── Status Selector ──────────────────────────────────────────────────────────
 function StatusSelector({ id, current }: { id: string; current: string }) {
   return (
@@ -310,9 +402,12 @@ export default async function AdminOrdersPage() {
                           {formatDate(order.created_at)}
                         </td>
 
-                        {/* Delete action */}
+                        {/* Actions */}
                         <td className="px-4 py-4">
-                          <DeleteButton id={order.id} />
+                          <div className="flex items-center gap-2">
+                            <EditOrderForm order={order} />
+                            <DeleteButton id={order.id} />
+                          </div>
                         </td>
                       </tr>
                     );
