@@ -355,6 +355,9 @@ function TrashZoneDropTarget({ onClearStrand }: { onClearStrand: () => void }) {
 type Props = {
   allBeads?: Bead[];
   onSelectSlot?: (slotIndex: number) => void;
+  onStartSwap?: (placedBead: PlacedBead) => void;
+  isSwapMode?: boolean;
+  hasSelectedTrayBead?: boolean;
   compact?: boolean;
   readOnly?: boolean;
   defaultViewMode?: "strand" | "preview";
@@ -362,11 +365,14 @@ type Props = {
 
 export function BraceletCanvas({
   onSelectSlot,
+  onStartSwap,
+  isSwapMode = false,
+  hasSelectedTrayBead = false,
   compact = false,
   readOnly = false,
   defaultViewMode,
 }: Props) {
-  const { placedBeads, config, removeBead, rotateBead, duplicateBead, setWristInches, reset } = useBraceletStore();
+  const { placedBeads, config, removeBead, rotateBead, duplicateBead, setWristInches, reset, lastError, clearError } = useBraceletStore();
   const physCap = calculateStrandPhysicalCapacity(placedBeads, config);
   const [selectedPlacedBead, setSelectedPlacedBead] = useState<PlacedBead | null>(null);
   const [viewMode, setViewMode] = useState<"strand" | "preview">(defaultViewMode || (compact ? "preview" : "strand"));
@@ -534,12 +540,23 @@ export function BraceletCanvas({
         </div>
       )}
 
+      {/* Capacity / Fit Error Alert Bar */}
+      {lastError && !compact && (
+        <div className="w-full bg-destructive/15 border border-destructive/40 text-destructive text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-between z-20 animate-in fade-in my-1">
+          <div className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-sm">warning</span>
+            <span>{lastError}</span>
+          </div>
+          <button onClick={clearError} className="hover:opacity-75">
+            <span className="material-symbols-outlined text-xs">close</span>
+          </button>
+        </div>
+      )}
+
       {/* Main Interactive Canvas Stage */}
       <div className={`relative w-full max-w-[750px] flex items-center justify-center my-auto ${
         viewMode === "preview" ? "h-[240px] sm:h-[280px]" : "h-[180px] sm:h-[200px]"
       }`}>
-
-
 
         <svg viewBox={`0 0 ${CANVAS_WIDTH} ${viewMode === "preview" ? CANVAS_HEIGHT_PREVIEW : CANVAS_HEIGHT}`} className="w-full h-full z-10 rounded-2xl">
           <defs>
@@ -694,7 +711,21 @@ export function BraceletCanvas({
         </svg>
       </div>
 
-      {/* Selected Bead Actions Control Drawer with Isolated Top-Right Close Button & Light Red Remove Button */}
+      {/* On-Canvas Hint Text Banner */}
+      {!compact && (
+        <div className="w-full text-center py-1 bg-muted/40 rounded-xl border border-border/50 text-[11px] font-medium text-muted-foreground flex items-center justify-center gap-1.5 z-10 my-1">
+          <span className="material-symbols-outlined text-xs text-primary">touch_app</span>
+          <span>
+            {isSwapMode
+              ? "Tap a bead in the tray below to swap with the selected bead."
+              : hasSelectedTrayBead
+              ? "Tap an open spot on the string to place your selected bead."
+              : "Tap a bead below, then tap the string to place it. Tap a placed bead to swap or remove it."}
+          </span>
+        </div>
+      )}
+
+      {/* Selected Bead Actions Control Drawer with Isolated Top-Right Close Button & Swap Button */}
       {!compact && (
         selectedPlacedBead ? (
           <div className="relative w-full bg-card border border-border/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg animate-in fade-in slide-in-from-bottom-2 z-20">
@@ -724,7 +755,22 @@ export function BraceletCanvas({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pr-2 sm:pr-6">
+            <div className="flex items-center gap-2 pr-2 sm:pr-6 flex-wrap">
+              {/* Swap Button */}
+              {onStartSwap && (
+                <button
+                  onClick={() => {
+                    const bead = selectedPlacedBead;
+                    setSelectedPlacedBead(null);
+                    onStartSwap(bead);
+                  }}
+                  className="px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold rounded-lg hover:bg-amber-500/20 transition-colors flex items-center gap-1.5 shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-sm">swap_horiz</span>
+                  <span>Swap</span>
+                </button>
+              )}
+
               <button
                 onClick={() => duplicateBead(selectedPlacedBead.placedId)}
                 className="px-3 py-1.5 bg-muted/80 text-foreground text-xs font-bold rounded-lg hover:bg-muted transition-colors flex items-center gap-1.5 shadow-xs"

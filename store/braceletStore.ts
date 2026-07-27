@@ -12,8 +12,10 @@ type BraceletState = {
   wristSizeLocked: boolean;
   lastError: string | null;
 
-  addBead: (bead: Bead, slotIndex: number) => void;
+  addBead: (bead: Bead, slotIndex: number) => boolean;
+  swapBead: (placedId: string, newBead: Bead) => boolean;
   removeBead: (placedId: string) => void;
+  clearError: () => void;
   moveBead: (placedId: string, newSlotIndex: number) => void;
   duplicateBead: (placedId: string) => void;
   rotateBead: (placedId: string, rotation: number) => void;
@@ -75,7 +77,10 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     const usedAfterFilter = filtered.reduce((acc, b) => acc + (b.widthMm || b.sizeMm || Math.round(8 * (b.size || 1))), 0);
     const fits = usedAfterFilter + widthMm <= physCap.capacityMm;
 
-    if (!fits) return; // Physical millimeter width limit exceeded
+    if (!fits) {
+      set({ lastError: `Bead won't fit! Remaining space is ${physCap.remainingMm}mm, but bead needs ${widthMm}mm.` });
+      return false;
+    }
 
     const placed: PlacedBead = {
       ...bead,
@@ -83,8 +88,42 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
       rotation: 0,
       placedId: `${bead.id}-${crypto.randomUUID()}`,
     };
-    set(pushHistory(state, [...filtered, placed]));
+    set({ ...pushHistory(state, [...filtered, placed]), lastError: null });
+    return true;
   },
+
+  swapBead: (placedId, newBead) => {
+    const state = get();
+    const target = state.placedBeads.find((b) => b.placedId === placedId);
+    if (!target) return false;
+
+    const physCap = calculateStrandPhysicalCapacity(state.placedBeads, state.config);
+    const newWidthMm = newBead.widthMm || newBead.sizeMm || Math.round(8 * (newBead.size || 1));
+
+    // Exclude target bead from capacity calculation
+    const remainingBeads = state.placedBeads.filter((b) => b.placedId !== placedId);
+    const usedAfterFilter = remainingBeads.reduce((acc, b) => acc + (b.widthMm || b.sizeMm || Math.round(8 * (b.size || 1))), 0);
+    const fits = usedAfterFilter + newWidthMm <= physCap.capacityMm;
+
+    if (!fits) {
+      const remainingMm = Math.max(0, physCap.capacityMm - usedAfterFilter);
+      set({ lastError: `Replacement bead won't fit! Available space is ${remainingMm}mm, but selected bead needs ${newWidthMm}mm.` });
+      return false;
+    }
+
+    const replacement: PlacedBead = {
+      ...newBead,
+      slotIndex: target.slotIndex,
+      rotation: 0,
+      placedId: `${newBead.id}-${crypto.randomUUID()}`,
+    };
+
+    const next = state.placedBeads.map((b) => (b.placedId === placedId ? replacement : b));
+    set({ ...pushHistory(state, next), lastError: null });
+    return true;
+  },
+
+  clearError: () => set({ lastError: null }),
 
   removeBead: (placedId) => {
     const state = get();

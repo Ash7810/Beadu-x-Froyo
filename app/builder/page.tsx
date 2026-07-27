@@ -31,7 +31,11 @@ function BuilderContent() {
   // Crafting Tray state (pre-populated with starter beads)
   const [trayBeads, setTrayBeads] = useState<Bead[]>(INITIAL_BEADS.slice(0, 6));
 
-  const { addBead, moveBead, placedBeads, config, pricing, reset, loadDesign, setWristInches, startNewCustomer } = useBraceletStore();
+  // Selection & Swap mode state
+  const [selectedTrayBeadId, setSelectedTrayBeadId] = useState<string | null>(null);
+  const [swappingPlacedBead, setSwappingPlacedBead] = useState<PlacedBead | null>(null);
+
+  const { addBead, swapBead, moveBead, placedBeads, config, pricing, reset, loadDesign, setWristInches, startNewCustomer, clearError } = useBraceletStore();
   const searchParams = useSearchParams();
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -42,13 +46,14 @@ function BuilderContent() {
   // Step 3: Review & Order
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
-
   const handleNewCustomer = () => {
     if (typeof window !== "undefined") {
       const confirmed = window.confirm("Start a new customer? This will clear the current design.");
       if (confirmed) {
         startNewCustomer();
         setTrayBeads(INITIAL_BEADS.slice(0, 6));
+        setSelectedTrayBeadId(null);
+        setSwappingPlacedBead(null);
         setCurrentStep(1);
       }
     }
@@ -77,18 +82,22 @@ function BuilderContent() {
 
   const handleRemoveFromTrayByBeadId = (beadId: string) => {
     setTrayBeads((prev) => prev.filter((b) => b.id !== beadId));
+    if (selectedTrayBeadId === beadId) {
+      setSelectedTrayBeadId(null);
+    }
   };
 
   const handleClearTray = () => {
     setTrayBeads([]);
+    setSelectedTrayBeadId(null);
   };
 
   const [activeDragItem, setActiveDragItem] = useState<{
-    type: "catalog-bead" | "placed-bead";
+    type: "placed-bead";
     bead: Bead;
   } | null>(null);
 
-  // Drag Sensors
+  // Drag Sensors for bounded placed-bead reordering only
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: { distance: 4 },
   });
@@ -130,30 +139,54 @@ function BuilderContent() {
     handleAddToTray(bead);
   };
 
-  const handlePlaceFromTray = (bead: Bead) => {
-    const physCap = calculateStrandPhysicalCapacity(placedBeads, config);
-    const beadMm = bead.sizeMm || Math.round(8 * (bead.size || 1));
-    if (physCap.usedMm + beadMm > physCap.capacityMm) {
+  // TRAY BEAD TAP HANDLER (Handles normal selection vs swap-target mode)
+  const handleTapTrayBead = (bead: Bead) => {
+    clearError();
+    if (swappingPlacedBead) {
+      // Execute Swap
+      const success = swapBead(swappingPlacedBead.placedId, bead);
+      if (success) {
+        setSwappingPlacedBead(null);
+      }
+    } else {
+      // Toggle selection ring
+      if (selectedTrayBeadId === bead.id) {
+        setSelectedTrayBeadId(null);
+      } else {
+        setSelectedTrayBeadId(bead.id);
+      }
+    }
+  };
+
+  // CANVAS OPEN SLOT TAP HANDLER (Places selected tray bead)
+  const handleSelectSlot = (slotIndex: number) => {
+    clearError();
+    if (swappingPlacedBead) {
+      setSwappingPlacedBead(null);
       return;
     }
+    if (!selectedTrayBeadId) return;
 
-    const takenSlots = new Set(placedBeads.map((b) => b.slotIndex));
-    let openSlot = 0;
-    while (takenSlots.has(openSlot) && openSlot < config.totalSlots) {
-      openSlot++;
+    const trayBead = trayBeads.find((b) => b.id === selectedTrayBeadId);
+    if (!trayBead) return;
+
+    const success = addBead(trayBead, slotIndex);
+    if (success) {
+      // Keep or clear selection per UX (deselect on placement)
+      setSelectedTrayBeadId(null);
     }
-    if (openSlot < config.totalSlots) {
-      addBead(bead, openSlot);
-    }
+  };
+
+  // START SWAP FLOW FROM PLACED BEAD DETAIL CARD
+  const handleStartSwap = (placedBead: PlacedBead) => {
+    clearError();
+    setSelectedTrayBeadId(null);
+    setSwappingPlacedBead(placedBead);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
-    if (!data) return;
-
-    if (data.type === "catalog-bead" || data.type === "tray-bead") {
-      setActiveDragItem({ type: "catalog-bead", bead: data.bead });
-    } else if (data.type === "placed-bead") {
+    if (data && data.type === "placed-bead") {
       setActiveDragItem({ type: "placed-bead", bead: data.placed });
     }
   };
@@ -164,37 +197,17 @@ function BuilderContent() {
 
     if (!over) return;
 
-    const overId = String(over.id);
-
-    if (overId === "trash-zone") {
-      const activeData = active.data.current;
-      if (activeData && activeData.type === "placed-bead") {
-        const placed: PlacedBead = activeData.placed;
-        useBraceletStore.getState().removeBead(placed.placedId);
-        return;
-      }
-    }
-
-    let slotIndex = -1;
-    if (overId.startsWith("slot-")) {
-      slotIndex = parseInt(overId.replace("slot-", ""), 10);
-    } else if (overId.startsWith("placed-") && over.data.current?.placed) {
-      slotIndex = over.data.current.placed.slotIndex;
-    }
-
-    if (isNaN(slotIndex) || slotIndex < 0) return;
-
     const activeData = active.data.current;
-    if (!activeData) return;
+    if (!activeData || activeData.type !== "placed-bead") return;
 
-    if (activeData.type === "catalog-bead" || activeData.type === "tray-bead") {
-      const physCap = calculateStrandPhysicalCapacity(placedBeads, config);
-      const beadMm = activeData.bead.sizeMm || Math.round(8 * (activeData.bead.size || 1));
-      if (physCap.usedMm + beadMm > physCap.capacityMm) return;
-      addBead(activeData.bead, slotIndex);
-    } else if (activeData.type === "placed-bead") {
-      const placed: PlacedBead = activeData.placed;
-      moveBead(placed.placedId, slotIndex);
+    const overData = over.data.current;
+    // Bounded drag reorder: only swap when dropped over another placed bead
+    if (overData && overData.type === "placed-bead") {
+      const activePlaced: PlacedBead = activeData.placed;
+      const targetPlaced: PlacedBead = overData.placed;
+      if (activePlaced.placedId !== targetPlaced.placedId) {
+        moveBead(activePlaced.placedId, targetPlaced.slotIndex);
+      }
     }
   };
 
@@ -372,14 +385,22 @@ function BuilderContent() {
           <div className="flex-1 flex flex-col justify-between overflow-hidden p-2 sm:p-4 max-w-6xl mx-auto w-full gap-2.5">
             {/* Main Interactive Strand Canvas Stage */}
             <div className="flex-1 w-full min-h-0 flex items-center justify-center">
-              <BraceletCanvas allBeads={beads} />
+              <BraceletCanvas
+                allBeads={beads}
+                onSelectSlot={handleSelectSlot}
+                onStartSwap={handleStartSwap}
+                isSwapMode={!!swappingPlacedBead}
+                hasSelectedTrayBead={!!selectedTrayBeadId}
+              />
             </div>
 
             {/* Bottom Crafting Tray */}
             <div className="w-full shrink-0">
               <CraftingTray
                 trayBeads={trayBeads}
-                onPlaceBead={handlePlaceFromTray}
+                selectedBeadId={selectedTrayBeadId}
+                isSwapMode={!!swappingPlacedBead}
+                onTapBead={handleTapTrayBead}
                 onClearTray={handleClearTray}
               />
             </div>

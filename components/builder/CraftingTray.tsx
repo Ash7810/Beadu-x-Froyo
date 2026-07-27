@@ -1,39 +1,38 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
 import { Bead } from "@/lib/types";
-import { Button } from "@/components/ui/button";
 
-function DraggableTrayBeadItem({
+function TrayBeadItem({
   bead,
-  index,
-  onPlaceBead,
+  isSelected,
+  isSwapMode,
+  onTapBead,
 }: {
   bead: Bead;
-  index: number;
-  onPlaceBead: (bead: Bead) => void;
+  isSelected: boolean;
+  isSwapMode: boolean;
+  onTapBead: (bead: Bead) => void;
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `tray-${bead.id}-${index}`,
-    data: { type: "tray-bead", bead, index },
-  });
-
   return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      onClick={() => onPlaceBead(bead)}
-      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border border-border/80 shadow-xs hover:border-primary/60 hover:bg-muted/30 transition-all cursor-grab active:cursor-grabbing touch-pan-x select-none shrink-0 w-20 h-22 sm:w-24 sm:h-26 ${
-        isDragging ? "opacity-30 scale-90 ring-2 ring-primary" : ""
+    <button
+      type="button"
+      onClick={() => onTapBead(bead)}
+      className={`group relative flex flex-col items-center justify-between p-2 rounded-2xl bg-card border shadow-xs transition-all cursor-pointer select-none shrink-0 w-20 h-22 sm:w-24 sm:h-26 ${
+        isSelected
+          ? "border-primary ring-4 ring-primary/40 bg-primary/10 scale-105"
+          : isSwapMode
+          ? "border-amber-500/80 ring-2 ring-amber-500/30 hover:scale-105 bg-amber-500/10"
+          : "border-border/80 hover:border-primary/60 hover:bg-muted/30"
       }`}
-      title={`${bead.name} • ${bead.material}`}
+      title={isSwapMode ? `Swap with ${bead.name}` : `${bead.name} • ${bead.material}`}
     >
       <div className="w-11 h-11 sm:w-13 sm:h-13 my-0.5 flex items-center justify-center group-hover:scale-110 transition-transform">
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border border-primary/20"
+          className={`w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border ${
+            isSelected ? "border-primary" : "border-primary/20"
+          }`}
         />
       </div>
 
@@ -45,34 +44,46 @@ function DraggableTrayBeadItem({
           {bead.isPremium || bead.price > 0 ? `₹${bead.price}` : "Free"}
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 
 type Props = {
   trayBeads: Bead[];
-  onPlaceBead: (bead: Bead) => void;
+  selectedBeadId?: string | null;
+  isSwapMode?: boolean;
+  onTapBead: (bead: Bead) => void;
   onClearTray: () => void;
 };
 
 export function CraftingTray({
   trayBeads,
-  onPlaceBead,
+  selectedBeadId,
+  isSwapMode = false,
+  onTapBead,
   onClearTray,
 }: Props) {
   return (
-    <div className="w-full bg-card border border-border/80 rounded-2xl p-3 sm:p-4 shadow-sm font-sans select-none space-y-2">
+    <div className={`w-full bg-card border rounded-2xl p-3 sm:p-4 shadow-sm font-sans select-none space-y-2 transition-all ${
+      isSwapMode ? "border-amber-500/80 ring-2 ring-amber-500/20 bg-amber-500/5" : "border-border/80"
+    }`}>
       {/* Header Bar */}
       <div className="flex justify-between items-center px-0.5">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-base">palette</span>
-          <h3 className="text-xs font-bold text-foreground">Personal Crafting Tray</h3>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
-            {trayBeads.length} Items Collected
+          <span className={`material-symbols-outlined text-base ${isSwapMode ? "text-amber-500 animate-bounce" : "text-primary"}`}>
+            {isSwapMode ? "swap_horiz" : "palette"}
+          </span>
+          <h3 className="text-xs font-bold text-foreground">
+            {isSwapMode ? "Swap Mode: Pick Replacement Bead" : "Personal Crafting Tray"}
+          </h3>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+            isSwapMode ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-primary/10 text-primary"
+          }`}>
+            {isSwapMode ? "Tap bead to replace" : `${trayBeads.length} Items Collected`}
           </span>
         </div>
 
-        {trayBeads.length > 0 && (
+        {trayBeads.length > 0 && !isSwapMode && (
           <div className="flex items-center gap-2">
             <button
               onClick={onClearTray}
@@ -94,11 +105,12 @@ export function CraftingTray({
       ) : (
         <div className="flex gap-2.5 overflow-x-auto touch-pan-x no-scrollbar py-1 px-1.5 scroll-smooth">
           {trayBeads.map((bead, idx) => (
-            <DraggableTrayBeadItem
+            <TrayBeadItem
               key={`tray-item-${idx}`}
               bead={bead}
-              index={idx}
-              onPlaceBead={onPlaceBead}
+              isSelected={selectedBeadId === bead.id}
+              isSwapMode={isSwapMode}
+              onTapBead={onTapBead}
             />
           ))}
         </div>
