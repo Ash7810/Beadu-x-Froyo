@@ -12,6 +12,9 @@ export type BeadCategory =
   | "birthstone"
   | "heart"
   | "premium-charm"
+  | "charm"
+  | "wood"
+  | "ceramic"
   | "custom";
 
 export type Bead = {
