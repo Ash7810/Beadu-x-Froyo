@@ -27,6 +27,7 @@ function BuilderContent() {
   // then silently update from the API (DB may have admin overrides)
   const [liveBeads, setLiveBeads] = useState<Bead[]>(INITIAL_BEADS);
   const [customBeads, setCustomBeads] = useState<Bead[]>([]);
+  
   // Memoize so the array reference is stable across renders (avoids triggering useEffect deps)
   const beads = useMemo<Bead[]>(() => [...liveBeads, ...customBeads], [liveBeads, customBeads]);
   // Keep a ref so the preset loader can read the latest beads without being a dependency

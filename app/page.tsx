@@ -112,11 +112,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Floating Hero Visual */}
           <div className="mt-8 sm:mt-12 md:mt-16 relative w-full max-w-5xl mx-auto">
-            <div className="floating relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 border-2 sm:border-4 border-white/80 dark:border-white/10">
+            <div className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 border-2 sm:border-4 border-white/80 dark:border-white/10">
               <div
-                className="w-full h-full bg-cover bg-center transition-transform duration-1000 hover:scale-105"
+                className="w-full h-full bg-cover bg-center"
                 style={{
                   backgroundImage:
                     "url('/beads/pomelli_photoshoot-3.png')",
@@ -163,9 +162,9 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Explore our curated selection of high-grade materials, precious metals, natural pearls, and hand-sculpted charms.
                 </p>
-                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm">
+                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm bg-muted/10">
                   <img
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    className="w-full h-full object-contain"
                     alt="Artisan terracotta red and orange wood bead bracelet"
                     src="/beads/pomelli_photoshoot_image_9_16_0726 (4).png"
                   />
@@ -181,9 +180,9 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Use our fluid digital builder to arrange your components and visualize your signature look in real-time.
                 </p>
-                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm">
+                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm bg-muted/10">
                   <img
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    className="w-full h-full object-contain"
                     alt="Design custom Indian handmade bracelet"
                     src="/beads/pomelli_photoshoot_image_9_16_0726.png"
                   />
@@ -199,9 +198,9 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Hand-finished by master jewelers and delivered in our signature velvet-lined presentation box.
                 </p>
-                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm">
+                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm bg-muted/10">
                   <img
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    className="w-full h-full object-contain"
                     alt="Hand-finished artisan bracelet on wrist"
                     src="/beads/pomelli_photoshoot_image_9_16_0726 (3).png"
                   />
@@ -237,14 +236,14 @@ export default function Home() {
                 <div
                   key={index}
                   onClick={() => setSelectedGalleryItem(item)}
-                  className="min-w-[260px] sm:min-w-[340px] h-[360px] sm:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer border border-border shadow-md hover:shadow-2xl transition-all duration-500 snap-start"
+                  className="min-w-[260px] sm:min-w-[340px] h-[360px] sm:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer border border-border shadow-md hover:shadow-2xl transition-all duration-300 snap-start"
                 >
                   <img
                     src={item.image}
                     alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 sm:p-6 text-white">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity duration-300 flex flex-col justify-end p-5 sm:p-6 text-white">
                     <h3 className="font-display text-xl sm:text-2xl font-light">{item.title}</h3>
                     <p className="text-xs opacity-80 mt-1 line-clamp-2">{item.description}</p>
                     <div className="mt-3 sm:mt-4 pt-3 border-t border-white/20 flex justify-between items-center text-xs">
@@ -407,8 +406,8 @@ export default function Home() {
             >
               <span className="material-symbols-outlined">close</span>
             </button>
-            <div className="aspect-video w-full rounded-xl overflow-hidden">
-              <img src={selectedGalleryItem.image} alt={selectedGalleryItem.title} className="w-full h-full object-cover" />
+            <div className="aspect-video w-full rounded-xl overflow-hidden bg-muted/20 border border-border/60">
+              <img src={selectedGalleryItem.image} alt={selectedGalleryItem.title} className="w-full h-full object-contain" />
             </div>
             <div>
               <span className="text-xs uppercase font-bold tracking-widest text-primary">
