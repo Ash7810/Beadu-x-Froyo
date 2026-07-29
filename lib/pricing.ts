@@ -18,7 +18,7 @@ export function getStrandSpecFromWrist(wristInches: number) {
   const totalCutInches = sanitizedWrist + knotExtensionInches;
   const capacityMm = Math.round(sanitizedWrist * 25.4);
   const lengthCm = Math.round(sanitizedWrist * 2.54 * 10) / 10;
-  const totalSlots = Math.max(10, Math.floor(capacityMm / MIN_BEAD_SIZE_MM));
+  const totalSlots = Math.max(10, Math.round(sanitizedWrist * 2.57));
   const freeSlotLimit = Math.max(6, Math.round(totalSlots * 0.66));
 
   return {

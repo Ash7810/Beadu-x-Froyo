@@ -306,7 +306,7 @@ function PlacedBeadItem({
     setDropRef(node as unknown as HTMLElement);
   };
 
-  const beadSize = baseBeadSize * ((placed.sizeMm || 8) / REFERENCE_BEAD_SIZE_MM);
+  const beadSize = baseBeadSize * (placed.size || 1);
   const rotationAngle = (pos.angle || 0) + (placed.rotation || 0);
 
   const clipId = `bead-clip-${placed.placedId.replace(/[^a-zA-Z0-9]/g, "-")}`;
@@ -452,15 +452,10 @@ export function BraceletCanvas({
     ? [...placedBeads].sort((a, b) => a.slotIndex - b.slotIndex)
     : null;
 
-  const baseBeadSize = viewMode === "preview"
-    ? computeBaseBeadSize(totalArcLength, previewSlotCount)
-    : computeBaseBeadSize(totalArcLength, Math.max(placedBeads.length, config.totalSlots));
-
-  // Physics-based positions for strand view — positions beads proportionally by their width
-  const physicsPositions = useMemo(() => {
-    if (viewMode !== "strand" || placedBeads.length === 0) return [];
-    return getPhysicsBasedBeadPositions(placedBeads, DEFAULT_STRAND_ARC, baseBeadSize);
-  }, [viewMode, placedBeads, baseBeadSize]);
+  const stepDistance = viewMode === "preview"
+    ? totalArcLength / Math.max(1, previewSlotCount)
+    : totalArcLength / (config.totalSlots - 1 || 1);
+  const baseBeadSize = Math.max(22, Math.min(44, stepDistance * 1.02));
 
   const { centerX, centerY, rx, ry, startAngle, endAngle } = DEFAULT_STRAND_ARC;
 
