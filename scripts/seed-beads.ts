@@ -9,7 +9,7 @@ try {
   const envPath = path.resolve(__dirname, "../.env.local");
   if (fs.existsSync(envPath)) {
     const envConfig = fs.readFileSync(envPath, "utf8");
-    envConfig.split("\n").forEach((line) => {
+    envConfig.split("\n").forEach((line: string) => {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith("#")) {
         const [key, ...values] = trimmed.split("=");

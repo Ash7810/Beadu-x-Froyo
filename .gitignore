@@ -41,3 +41,12 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# Temp test processing output
+/public/beads/test_*
+/public/beads/batch_a/
+/public/beads/batch_a_polished/
+/public/beads/batch_a_shadowless/
+/public/beads/batch_a_transparent/
+/public/beads/batch_a_v2/
+/scripts/test_*.py

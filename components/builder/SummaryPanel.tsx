@@ -115,50 +115,7 @@ export function SummaryPanel({ onSave, onShare, onSubmit }: Props) {
           </div>
         </div>
 
-        {/* Physical String Length & 2-Inch Knot Extension Card */}
-        <div className="space-y-2 bg-card p-3.5 rounded-xl border border-primary/30 shadow-xs font-sans">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-muted-foreground flex items-center gap-1 font-medium">
-              <span className="material-symbols-outlined text-primary text-sm">straighten</span>
-              Final String Cut
-            </span>
-            <span className="text-foreground font-bold text-xs">
-              {calculateStrandPhysicalCapacity(placedBeads, config).totalCutInches.toFixed(1)}"{" "}
-              <span className="text-[10px] text-muted-foreground font-normal">
-                ({calculateStrandPhysicalCapacity(placedBeads, config).wristInches}" fit + 2.0" knot)
-              </span>
-            </span>
-          </div>
-          <div className="space-y-1 pt-1 border-t border-border/40">
-            <div className="flex justify-between text-[11px]">
-              <span className="text-muted-foreground">Bead Capacity</span>
-              <span className="text-foreground font-semibold">
-                {calculateStrandPhysicalCapacity(placedBeads, config).usedMm}mm /{" "}
-                {calculateStrandPhysicalCapacity(placedBeads, config).capacityMm}mm
-              </span>
-            </div>
-            <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-300 rounded-full ${calculateStrandPhysicalCapacity(placedBeads, config).remainingMm < 10
-                    ? "bg-amber-500"
-                    : "bg-primary"
-                  }`}
-                style={{
-                  width: `${Math.min(
-                    100,
-                    (calculateStrandPhysicalCapacity(placedBeads, config).usedMm /
-                      calculateStrandPhysicalCapacity(placedBeads, config).capacityMm) *
-                    100
-                  )}%`,
-                }}
-              />
-            </div>
-            <div className="flex justify-between text-[10px] text-muted-foreground pt-0.5">
-              <span>Remaining: {calculateStrandPhysicalCapacity(placedBeads, config).remainingMm}mm</span>
-              <span className="text-primary font-medium">+2.0" knot extension added</span>
-            </div>
-          </div>
-        </div>
+
 
         {/* Slot Progress */}
         <div className="space-y-2 bg-background p-3 rounded-xl border border-border">
@@ -182,39 +139,57 @@ export function SummaryPanel({ onSave, onShare, onSubmit }: Props) {
 
         {/* Price Breakdown */}
         <div className="space-y-2.5 bg-muted/30 p-3.5 rounded-xl border border-border/60 text-xs font-sans">
-          <div className="flex justify-between items-center text-muted-foreground">
-            <span>Complimentary Allowance ({pricing.freeBeadCount} / {config.freeSlotLimit})</span>
-            <span className="text-emerald-600 font-bold dark:text-emerald-400 shrink-0 ml-2">FREE</span>
+          <div className="flex justify-between items-center text-muted-foreground font-medium">
+            <span>Total Placed Beads</span>
+            <span className="font-bold text-foreground bg-primary/10 text-primary px-2 py-0.5 rounded">
+              {placedBeads.length} Beads
+            </span>
           </div>
 
-          {/* Premium & Custom Placed Itemized Breakdown */}
-          {placedBeads.some((b) => b.isPremium || b.price > 0) && (
+          {/* Itemized Placed Bead Breakdown */}
+          {placedBeads.length > 0 && (
             <div className="pt-2 border-t border-border/40 space-y-1.5">
               <span className="block text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                Itemized Upgrades & Custom Charms:
+                Itemized Bead Breakdown:
               </span>
-              {placedBeads
-                .filter((b) => b.isPremium || b.price > 0)
-                .map((bead, i) => (
-                  <div key={i} className="flex justify-between items-center text-[11px] text-muted-foreground">
-                    <span className="truncate flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                      <span className="truncate">{bead.name}</span>
-                    </span>
-                    <span className="font-medium text-foreground shrink-0 ml-2">₹{bead.price}</span>
-                  </div>
-                ))}
+              {Object.entries(
+                placedBeads.reduce((acc, bead) => {
+                  const name = bead.name || bead.id;
+                  if (!acc[name]) {
+                    acc[name] = { count: 0, price: bead.price };
+                  }
+                  acc[name].count += 1;
+                  return acc;
+                }, {} as Record<string, { count: number; price: number }>)
+              ).map(([name, item]) => (
+                <div key={name} className="flex justify-between items-center text-[11px] text-muted-foreground">
+                  <span className="truncate flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <span className="truncate">{name} (x{item.count})</span>
+                  </span>
+                  <span className="font-medium text-foreground shrink-0 ml-2">
+                    {item.price > 0 ? `₹${item.price * item.count}` : "FREE"}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
 
-          <div className="pt-2.5 border-t border-border flex justify-between items-baseline">
+          <div className="pt-2.5 border-t border-border flex justify-between items-center">
             <div>
-              <span className="block font-semibold text-foreground text-sm">Total Valuation</span>
-              <span className="text-[10px] text-muted-foreground">Includes artisan hand finishing & gift box</span>
+              <span className="block font-semibold text-foreground text-sm">Total Pricing</span>
+              <span className="text-[10px] text-muted-foreground">Event complimentary offer</span>
             </div>
-            <span className="font-display text-2xl font-bold text-primary">
-              {pricing.total === 0 ? "Complimentary" : `₹${pricing.total}`}
-            </span>
+            <div className="text-right">
+              {pricing.total > 0 && (
+                <span className="text-xs text-muted-foreground line-through block">
+                  ₹{pricing.total}
+                </span>
+              )}
+              <span className="font-display text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                FREE
+              </span>
+            </div>
           </div>
         </div>
       </div>

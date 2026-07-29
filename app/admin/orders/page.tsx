@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { deleteOrder, updateOrderStatus, updateOrderDetails } from "./actions";
+import { OrderCardClient } from "./OrderCardClient";
 import { PlacedBead } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -241,18 +242,20 @@ export default async function AdminOrdersPage() {
   return (
     <div className="space-y-6 font-sans">
       {/* Page Title Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card border border-border/80 rounded-2xl p-6 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-card via-background to-card border border-border/80 rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Customer Order Fulfillment</h1>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Review custom customer designs, track shipping status, and update customer addresses.
-          </p>
+          <div>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Order Fulfillment Center</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Review custom customer designs, track shipping status, and update customer addresses.
+            </p>
+          </div>
         </div>
-        <div className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-          {orders.length} Order{orders.length !== 1 ? "s" : ""} Total
+        <div className="text-xs font-bold px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
+          {orders.length} Active {orders.length === 1 ? "Order" : "Orders"}
         </div>
       </div>
 
@@ -270,29 +273,29 @@ export default async function AdminOrdersPage() {
       )}
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Orders", value: totals.all,                      icon: "receipt_long",   color: "text-foreground" },
-          { label: "Confirmed",    value: totals.confirmed,                 icon: "check_circle",   color: "text-amber-600"  },
-          { label: "Shipped",      value: totals.shipped,                   icon: "local_shipping", color: "text-blue-600"   },
-          { label: "Revenue",      value: formatPrice(totals.revenue),      icon: "currency_rupee", color: "text-emerald-600" },
+          { label: "Total Orders", value: totals.all,                      icon: "receipt_long",   color: "text-foreground", bg: "bg-muted/50" },
+          { label: "Confirmed",    value: totals.confirmed,                 icon: "check_circle",   color: "text-amber-600",  bg: "bg-amber-500/10" },
+          { label: "Shipped",      value: totals.shipped,                   icon: "local_shipping", color: "text-blue-600",   bg: "bg-blue-500/10" },
+          { label: "Revenue",      value: formatPrice(totals.revenue),      icon: "currency_rupee", color: "text-emerald-600", bg: "bg-emerald-500/10" },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-card border border-border/80 rounded-2xl p-4 shadow-xs flex items-center gap-3 transition-all hover:border-primary/40"
+            className="bg-card border border-border/80 rounded-2xl p-4 shadow-xs flex items-center gap-3.5 transition-all hover:border-primary/40"
           >
-            <div className="w-10 h-10 rounded-full bg-muted/60 flex items-center justify-center shrink-0">
+            <div className={`w-11 h-11 rounded-xl ${stat.bg} flex items-center justify-center shrink-0`}>
               <span className={`material-symbols-outlined text-xl ${stat.color}`}>{stat.icon}</span>
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground font-medium">{stat.label}</p>
-              <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">{stat.label}</p>
+              <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Orders Table */}
+      {/* Orders Modern Grid Section */}
       {orders.length === 0 ? (
         <div className="bg-card border border-border/80 rounded-2xl p-16 text-center shadow-xs space-y-2">
           <span className="material-symbols-outlined text-5xl text-muted-foreground/40">inventory_2</span>
@@ -302,123 +305,20 @@ export default async function AdminOrdersPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-card border border-border/80 rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-border/60 flex items-center justify-between">
-            <span className="text-xs font-bold text-foreground uppercase tracking-wider">Live Orders</span>
-            <span className="text-xs text-muted-foreground">{orders.length} records</span>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-base">orders</span>
+              Customer Orders Catalog
+            </h2>
+            <span className="text-xs text-muted-foreground font-medium">{orders.length} Live Records</span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-border/80 bg-muted/40 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="px-4 py-3.5">Order ID & Strand</th>
-                  <th className="px-4 py-3.5">Customer & Shipping</th>
-                  <th className="px-4 py-3.5">Beads Placed</th>
-                  <th className="px-4 py-3.5">Wrist & Cord</th>
-                  <th className="px-4 py-3.5">Price</th>
-                  <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5">Date</th>
-                  <th className="px-4 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {orders.map((order) => {
-                  const statusStyle = STATUS_LABELS[order.status] ?? STATUS_LABELS.draft;
-                  const placedArray = Array.isArray(order.placed_beads) ? order.placed_beads : [];
-
-                  return (
-                    <tr key={order.id} className="hover:bg-muted/30 transition-colors">
-                      {/* ID & Visual Preview */}
-                      <td className="px-4 py-3.5">
-                        <span className="font-mono text-xs font-bold text-primary">
-                          #{order.id.slice(0, 8).toUpperCase()}
-                        </span>
-                        {/* Mini Bead Strand Image Strip */}
-                        {placedArray.length > 0 && (
-                          <div className="flex items-center gap-1 mt-1.5 overflow-x-auto max-w-[140px] no-scrollbar py-0.5">
-                            {placedArray.slice(0, 6).map((b, idx) => (
-                              <img
-                                key={idx}
-                                src={b.imageUrl}
-                                alt={b.name}
-                                className="w-5 h-5 rounded-full border border-primary/20 shrink-0 object-cover"
-                              />
-                            ))}
-                            {placedArray.length > 6 && (
-                              <span className="text-[9px] text-muted-foreground font-bold shrink-0">
-                                +{placedArray.length - 6}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Customer Info */}
-                      <td className="px-4 py-3.5">
-                        <p className="font-bold text-foreground text-xs">{order.customer_name || "Guest Customer"}</p>
-                        <p className="text-muted-foreground text-[11px]">{order.email || "No email"}</p>
-                        <p className="text-muted-foreground text-[11px]">{order.phone || "No phone"}</p>
-                        {order.address && (
-                          <p className="text-muted-foreground text-[10px] mt-0.5 max-w-[160px] truncate" title={order.address}>
-                            📍 {order.address}
-                          </p>
-                        )}
-                      </td>
-
-                      {/* Placed Beads */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-1 font-bold text-foreground">
-                          <span className="material-symbols-outlined text-sm text-primary">circle</span>
-                          <span>{placedArray.length}</span>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground">Components</span>
-                      </td>
-
-                      {/* Wrist Specs */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <p className="font-bold text-foreground text-xs">{order.wrist_inches}&quot; Wrist</p>
-                        <p className="text-[10px] text-muted-foreground capitalize">
-                          {order.cord_type?.replace("_", " ")} cord
-                        </p>
-                      </td>
-
-                      {/* Valuation */}
-                      <td className="px-4 py-3.5 font-bold">
-                        {order.total_price > 0 ? (
-                          <span className="text-foreground text-xs">{formatPrice(order.total_price)}</span>
-                        ) : (
-                          <span className="text-emerald-600 font-bold text-xs">Complimentary</span>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-4 py-3.5">
-                        <div className="space-y-1.5">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusStyle.color}`}>
-                            {statusStyle.label}
-                          </span>
-                          <StatusSelector id={order.id} current={order.status} />
-                        </div>
-                      </td>
-
-                      {/* Date */}
-                      <td className="px-4 py-3.5 text-[11px] text-muted-foreground whitespace-nowrap">
-                        {formatDate(order.created_at)}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <EditOrderForm order={order} />
-                          <DeleteButton id={order.id} />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {orders.map((order, idx) => (
+              <OrderCardClient key={order.id} order={order} index={idx + 1} />
+            ))}
           </div>
         </div>
       )}

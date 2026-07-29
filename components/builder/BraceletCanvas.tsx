@@ -31,8 +31,8 @@ const MARGIN_BUFFER_PX = 24;        // ~5mm buffer reserved at both ends near cl
 // Perfectly proportioned closed-loop product preview ellipse — centered in 750×280 viewBox
 const CLOSED_LOOP_CENTER_X = 375;
 const CLOSED_LOOP_CENTER_Y = 140;
-const CLOSED_LOOP_RX = 210;
-const CLOSED_LOOP_RY = 100;
+const CLOSED_LOOP_RX = 230;
+const CLOSED_LOOP_RY = 85;
 
 function getUniformSlotPositions(totalSlots: number, params: ArcContourParams = DEFAULT_STRAND_ARC) {
   const SAMPLES = 300;
@@ -127,28 +127,26 @@ function getPhysicsBasedBeadPositions(
   const sorted = [...placedBeads].sort((a, b) => a.slotIndex - b.slotIndex);
 
   // Calculate total physical width of all placed beads in arc-pixels
-  // Convert mm to arc-pixels proportionally
-  const totalBeadWidthMm = sorted.reduce((acc, b) => acc + (b.widthMm || b.sizeMm || 8), 0);
-  // Scale factor: how many arc-pixels per mm
-  const arcPixelsPerMm = usableLength / Math.max(totalBeadWidthMm, 1);
-  // But cap it so beads don't stretch beyond reasonable spacing
-  const effectiveScale = Math.min(arcPixelsPerMm, usableLength / (sorted.length * 6));
-
-  // Calculate gap: distribute remaining space as gaps between beads
-  const totalBeadArcWidth = sorted.reduce((acc, b) => {
-    const w = (b.widthMm || b.sizeMm || 8) * effectiveScale;
-    return acc + Math.max(w, basePixelSize * 0.5);
+  const rawTotalBeadArcWidth = sorted.reduce((acc, b) => {
+    const beadWidthMm = b.widthMm || b.sizeMm || (b.size ? Math.round(b.size * 8) : 8);
+    const scaleFactor = beadWidthMm / REFERENCE_BEAD_SIZE_MM;
+    return acc + basePixelSize * scaleFactor;
   }, 0);
-  const totalGap = Math.max(0, usableLength - totalBeadArcWidth);
-  const gapPerBead = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
 
-  // Position each bead sequentially along the arc
+  // Scale down step width if total bead width exceeds usable strand length so beads NEVER spill off the ends
+  const widthScale = rawTotalBeadArcWidth > usableLength ? usableLength / rawTotalBeadArcWidth : 1.0;
+  const totalBeadArcWidth = rawTotalBeadArcWidth * widthScale;
+
+  // Center the strung beads strictly within usable strand bounds
+  const startOffset = Math.max(usableStart, usableStart + (usableLength - totalBeadArcWidth) / 2);
+
   const positions: { x: number; y: number; angle: number; beadSizePx: number; placedId: string }[] = [];
-  let cursor = usableStart;
+  let cursor = startOffset;
 
   for (const bead of sorted) {
-    const beadWidthMm = bead.widthMm || bead.sizeMm || 8;
-    const beadArcWidth = Math.max(beadWidthMm * effectiveScale, basePixelSize * 0.5);
+    const beadWidthMm = bead.widthMm || bead.sizeMm || (bead.size ? Math.round(bead.size * 8) : 8);
+    const scaleFactor = beadWidthMm / REFERENCE_BEAD_SIZE_MM;
+    const beadArcWidth = basePixelSize * scaleFactor * widthScale;
     const beadCenter = cursor + beadArcWidth / 2;
 
     // Find the position on the arc at this distance
@@ -169,12 +167,10 @@ function getPhysicsBasedBeadPositions(
     const dy = ry * Math.cos(angle);
     const tangentAngle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-    // Visual bead size proportional to its sizeMm
-    const beadSizePx = basePixelSize * ((bead.sizeMm || 8) / REFERENCE_BEAD_SIZE_MM);
+    positions.push({ x, y, angle: tangentAngle, beadSizePx: beadArcWidth, placedId: bead.placedId });
 
-    positions.push({ x, y, angle: tangentAngle, beadSizePx, placedId: bead.placedId });
-
-    cursor += beadArcWidth + gapPerBead;
+    // Touch side-by-side seamlessly strictly bounded on the strand
+    cursor += beadArcWidth;
   }
 
   return positions;
@@ -306,10 +302,12 @@ function PlacedBeadItem({
     setDropRef(node as unknown as HTMLElement);
   };
 
-  const beadSize = baseBeadSize * (placed.size || 1);
+  const beadWidthMm = placed.widthMm || placed.sizeMm || (placed.size ? Math.round(placed.size * 8) : 8);
+  const scaleFactor = beadWidthMm / 8;
+  // Scale up image bounds by 1.35x to compensate for 500x500 PNG transparent margins
+  const beadSize = baseBeadSize * scaleFactor * 1.35;
   const rotationAngle = (pos.angle || 0) + (placed.rotation || 0);
 
-  const clipId = `bead-clip-${placed.placedId.replace(/[^a-zA-Z0-9]/g, "-")}`;
   const isCustomBead = placed.category === "custom" || placed.id.startsWith("custom");
 
   const handleClick = (e: React.MouseEvent) => {
@@ -326,7 +324,6 @@ function PlacedBeadItem({
       {...(readOnly ? {} : attributes)}
       transform={`translate(${pos.x}, ${pos.y}) rotate(${rotationAngle})`}
       onClick={handleClick}
-      filter="url(#bead-shadow)"
       className={
         readOnly
           ? "cursor-default select-none pointer-events-none outline-none"
@@ -334,20 +331,14 @@ function PlacedBeadItem({
       }
       style={{ outline: "none" }}
     >
-      <defs>
-        <clipPath id={clipId}>
-          <circle cx="0" cy="0" r={beadSize / 2} />
-        </clipPath>
-      </defs>
-
       {!readOnly && (
-        <circle cx="0" cy="0" r={Math.max(24, beadSize / 2 + 10)} fill="transparent" className="cursor-pointer" />
+        <circle cx="0" cy="0" r={Math.max(24, beadSize / 2 + 6)} fill="transparent" className="cursor-pointer" />
       )}
 
       {/* Selected Bead Ring - Clean Dotted Gold Circle Ring */}
       {isSelected && (
         <circle
-          r={beadSize / 2 + 6}
+          r={beadSize / 2.6 + 4}
           fill="none"
           stroke="#d4af37"
           strokeWidth="2.5"
@@ -358,7 +349,7 @@ function PlacedBeadItem({
       {/* Drag Hover Target Ring */}
       {isOver && !isDragging && (
         <circle
-          r={beadSize / 2 + 7}
+          r={beadSize / 2.6 + 5}
           fill="rgba(212, 175, 55, 0.25)"
           stroke="#d4af37"
           strokeWidth="3"
@@ -372,7 +363,6 @@ function PlacedBeadItem({
         width={beadSize}
         height={beadSize}
         preserveAspectRatio="xMidYMid meet"
-        clipPath={`url(#${clipId})`}
       />
     </g>
   );
@@ -416,6 +406,7 @@ type Props = {
   compact?: boolean;
   readOnly?: boolean;
   defaultViewMode?: "strand" | "preview";
+  customPlacedBeads?: PlacedBead[];
 };
 
 export function BraceletCanvas({
@@ -427,8 +418,12 @@ export function BraceletCanvas({
   compact = false,
   readOnly = false,
   defaultViewMode,
+  customPlacedBeads,
 }: Props) {
-  const { placedBeads, config, removeBead, setWristInches, reset, lastError, clearError } = useBraceletStore();
+  const storeState = useBraceletStore();
+  const placedBeads = customPlacedBeads ?? storeState.placedBeads;
+  const config = storeState.config;
+  const { removeBead, setWristInches, reset, lastError, clearError } = storeState;
   const physCap = calculateStrandPhysicalCapacity(placedBeads, config);
   const [viewMode, setViewMode] = useState<"strand" | "preview">(defaultViewMode || (compact ? "preview" : "strand"));
   const [mounted, setMounted] = useState(false);
@@ -627,7 +622,7 @@ export function BraceletCanvas({
 
       {/* Main Interactive Canvas Stage */}
       <div className={`relative w-full max-w-[750px] flex items-center justify-center my-auto ${
-        viewMode === "preview" ? "h-[220px] sm:h-[280px]" : "h-[180px] sm:h-[200px]"
+        compact ? "h-full" : viewMode === "preview" ? "h-[220px] sm:h-[280px]" : "h-[180px] sm:h-[200px]"
       }`}>
 
         <svg viewBox={`0 0 ${CANVAS_WIDTH} ${viewMode === "preview" ? CANVAS_HEIGHT_PREVIEW : CANVAS_HEIGHT}`} className="w-full h-full z-10 rounded-2xl">
@@ -638,11 +633,6 @@ export function BraceletCanvas({
               <stop offset="50%" stopColor="#ffffff" stopOpacity="0.1" />
               <stop offset="100%" stopColor="#000000" stopOpacity="0.2" />
             </radialGradient>
-
-            {/* Soft Contact Drop Shadow for Bead Depth */}
-            <filter id="bead-shadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.12" />
-            </filter>
 
             {/* Pure Crystal Silicone Elastic Stretch Cord Gradient */}
             <linearGradient id="elastic-strand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -759,25 +749,49 @@ export function BraceletCanvas({
             );
           })}
 
-          {/* Placed Bead Elements */}
-          {(viewMode === "preview" ? sortedBeadsForPreview! : placedBeads).map((placed, idx) => {
-            const pos = viewMode === "preview" ? slots[idx] : slots[placed.slotIndex];
-            if (!pos) return null;
-            const isSelected = selectedPlacedBeadId === placed.placedId;
+          {/* Compute physics-based positions so beads of different mm sizes are spaced and sized according to physical dimensions */}
+          {(() => {
+            const physPositions = viewMode === "strand" && placedBeads.length > 0
+              ? getPhysicsBasedBeadPositions(placedBeads, DEFAULT_STRAND_ARC, baseBeadSize)
+              : [];
+            const physMap = new Map(physPositions.map((p) => [p.placedId, p]));
 
-            return (
-              <PlacedBeadItem
-                key={placed.placedId}
-                placed={placed}
-                pos={pos}
-                baseBeadSize={baseBeadSize}
-                isSelected={isSelected}
-                viewMode={viewMode}
-                readOnly={readOnly}
-                onSelect={() => onSelectPlacedBead && onSelectPlacedBead(placed)}
-              />
-            );
-          })}
+            let beadsToRender = viewMode === "preview" ? sortedBeadsForPreview! : placedBeads;
+            
+            // In closed loop preview, sort by Y-coordinate so top (back) beads render behind bottom (front) beads
+            if (viewMode === "preview" && sortedBeadsForPreview) {
+              beadsToRender = [...sortedBeadsForPreview].sort((a, b) => {
+                const idxA = sortedBeadsForPreview.indexOf(a);
+                const idxB = sortedBeadsForPreview.indexOf(b);
+                const yA = slots[idxA]?.y || 0;
+                const yB = slots[idxB]?.y || 0;
+                return yA - yB;
+              });
+            }
+
+            return beadsToRender.map((placed) => {
+              const previewIdx = sortedBeadsForPreview ? sortedBeadsForPreview.indexOf(placed) : 0;
+              const pos = viewMode === "preview"
+                ? slots[previewIdx]
+                : (physMap.get(placed.placedId) || slots[placed.slotIndex]);
+
+              if (!pos) return null;
+              const isSelected = selectedPlacedBeadId === placed.placedId;
+
+              return (
+                <PlacedBeadItem
+                  key={placed.placedId}
+                  placed={placed}
+                  pos={pos}
+                  baseBeadSize={baseBeadSize}
+                  isSelected={isSelected}
+                  viewMode={viewMode}
+                  readOnly={readOnly}
+                  onSelect={() => onSelectPlacedBead && onSelectPlacedBead(placed)}
+                />
+              );
+            });
+          })()}
         </svg>
       </div>
 

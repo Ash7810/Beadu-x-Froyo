@@ -23,11 +23,31 @@ import { CraftingTray } from "@/components/builder/CraftingTray";
 import { Button } from "@/components/ui/button";
 
 function BuilderContent() {
+  const [liveBeads, setLiveBeads] = useState<Bead[]>(INITIAL_BEADS);
   const [customBeads, setCustomBeads] = useState<Bead[]>([]);
-  const beads: Bead[] = [...INITIAL_BEADS, ...customBeads];
+  const beads: Bead[] = [...liveBeads, ...customBeads];
 
   // Crafting Tray state (pre-populated with starter beads)
   const [trayBeads, setTrayBeads] = useState<Bead[]>(INITIAL_BEADS.slice(0, 6));
+
+  useEffect(() => {
+    fetch("/api/beads")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setLiveBeads(data);
+          setTrayBeads((prev) => {
+            const validIds = new Set(data.map((b: Bead) => b.id));
+            const filteredPrev = prev.filter((b) => validIds.has(b.id));
+            if (filteredPrev.length === 0) {
+              return data.slice(0, 6);
+            }
+            return filteredPrev;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Selection & Swap mode state
   const [selectedTrayBeadId, setSelectedTrayBeadId] = useState<string | null>(null);
@@ -58,7 +78,7 @@ function BuilderContent() {
       const confirmed = window.confirm("Start a new customer? This will clear the current design.");
       if (confirmed) {
         startNewCustomer();
-        setTrayBeads(INITIAL_BEADS.slice(0, 6));
+        setTrayBeads(liveBeads.slice(0, 6));
         setSelectedTrayBeadId(null);
         setSelectedPlacedBeadId(null);
         setCurrentStep(1);
@@ -333,16 +353,6 @@ function BuilderContent() {
             Valuation: <strong className="text-primary font-medium text-[13px] ml-1">{pricing.total === 0 ? "Free" : `₹${pricing.total}`}</strong>
           </div>
 
-          {/* Admin Portal Lock Icon Button */}
-          <Link
-            href="/admin/orders"
-            className="w-9 h-9 sm:w-10 sm:h-10 text-xs text-muted-foreground hover:text-primary hover:bg-muted/80 transition-all rounded-full border border-border/80 shadow-xs flex items-center justify-center shrink-0 cursor-pointer active:scale-95 min-w-[36px] min-h-[36px]"
-            title="Admin Portal & Configuration"
-            aria-label="Admin Portal & Configuration"
-          >
-            <span className="material-symbols-outlined text-base">lock</span>
-          </Link>
-
           {/* New Customer / Reset Button - 40x40px touch zone */}
           <button
             onClick={handleNewCustomer}
@@ -395,8 +405,8 @@ function BuilderContent() {
       {/* STEP 1: SELECT BEADS FOR TRAY */}
       {/* ========================================================================= */}
       {currentStep === 1 && (
-        <div className="flex-1 flex flex-col justify-between min-h-0 p-3 sm:p-4 md:p-6 max-w-6xl mx-auto w-full gap-3">
-          <div className="flex-1 min-h-0 bg-card rounded-2xl border border-border/80 p-3 sm:p-5 shadow-xs flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0 p-2 sm:p-4 max-w-6xl mx-auto w-full gap-2 overflow-hidden">
+          <div className="flex-1 min-h-0 bg-card rounded-2xl border border-border/80 p-2.5 sm:p-5 shadow-xs flex flex-col">
             <BeadLibrary
               beads={beads}
               trayBeadIds={trayBeads.map((b) => b.id)}
@@ -406,22 +416,22 @@ function BuilderContent() {
             />
           </div>
 
-          {/* Step 1 Bottom Sticky Proceed Bar with safe-area inset */}
-          <div className="w-full shrink-0 sticky bottom-0 z-30 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-            <div className="flex flex-row justify-between items-center bg-card/95 backdrop-blur-md border border-border/80 p-3 sm:p-4 rounded-2xl shadow-lg gap-2">
-              <div className="text-[13px] flex items-center gap-2">
+          {/* Step 1 Bottom Bar - Compact & Flush */}
+          <div className="w-full shrink-0 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+            <div className="flex flex-row justify-between items-center bg-card/95 backdrop-blur-md border border-border/80 p-2.5 sm:p-3.5 rounded-2xl shadow-md gap-2">
+              <div className="text-xs flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-primary text-base">shopping_bag</span>
                 <div>
                   <span className="text-muted-foreground font-medium hidden xs:inline">Tray Inventory: </span>
-                  <strong className="text-foreground font-medium">{trayBeads.length} Collected</strong>
+                  <strong className="text-foreground font-bold text-xs">{trayBeads.length} Selected</strong>
                 </div>
               </div>
 
               <button
                 onClick={() => setCurrentStep(2)}
-                className="px-5 py-2.5 sm:px-6 sm:py-2.5 gold-shimmer text-on-primary-container font-medium text-[13px] rounded-full shadow-md hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-1.5 shrink-0 min-h-[44px] cursor-pointer"
+                className="px-5 py-2.5 gold-shimmer text-on-primary-container font-bold text-xs rounded-full shadow-md hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-1 shrink-0 min-h-[40px] cursor-pointer"
               >
-                <span>Design Strand →</span>
+                <span>Start Designing →</span>
               </button>
             </div>
           </div>

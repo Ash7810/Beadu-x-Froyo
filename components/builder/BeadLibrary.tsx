@@ -37,40 +37,40 @@ export const BeadItem = memo(function BeadItem({
   return (
     <div
       onClick={handleToggle}
-      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition-all cursor-pointer select-none min-h-[140px] sm:min-h-[170px] ${
-        isInTray ? "border-emerald-500/50 bg-emerald-500/5 hover:bg-emerald-500/10" : ""
+      className={`group relative flex flex-col items-center justify-between p-2 sm:p-3 rounded-2xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition-all cursor-pointer select-none ${
+        isInTray ? "border-emerald-500/60 bg-emerald-500/5 hover:bg-emerald-500/10" : ""
       }`}
     >
       {isSelected ? (
-        <span className="absolute left-2 top-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-xs">
+        <span className="absolute left-2 top-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-xs">
           Active
         </span>
       ) : isInTray ? (
-        <span className="absolute left-2 top-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+        <span className="absolute left-2 top-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
           ✓ In Tray
         </span>
       ) : bead.isPremium || bead.price > 0 ? (
-        <span className="absolute left-2 top-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+        <span className="absolute left-2 top-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
           Premium
         </span>
       ) : null}
 
-      <div className={`relative w-12 h-12 sm:w-16 sm:h-16 my-1 flex items-center justify-center rounded-full transition-all ${
-        isSelected ? "ring-4 ring-primary ring-offset-2 ring-offset-background scale-105" : "group-hover:scale-105"
+      <div className={`relative w-12 h-12 sm:w-16 sm:h-16 my-1 mt-3 flex items-center justify-center transition-all ${
+        isSelected ? "scale-105" : "group-hover:scale-105"
       }`}>
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full border border-primary/20"
+          className="w-full h-full object-contain drop-shadow-xs pointer-events-none p-1"
         />
       </div>
 
-      <div className="w-full text-center space-y-1 mt-auto">
-        <span className="block text-[13px] font-medium text-foreground truncate px-0.5" title={bead.name}>
+      <div className="w-full text-center space-y-1 mt-2">
+        <span className="block text-xs font-semibold text-foreground truncate px-0.5" title={bead.name}>
           {bead.name}
         </span>
-        <div className="flex items-center justify-between pt-1 border-t border-border/50 gap-2">
-          <span className="text-[12px] text-primary font-medium">
+        <div className="flex items-center justify-between pt-1.5 border-t border-border/50 gap-1">
+          <span className="text-xs text-primary font-bold">
             {bead.isPremium || bead.price > 0 ? `₹${bead.price}` : "Free"}
           </span>
           <button
@@ -78,13 +78,13 @@ export const BeadItem = memo(function BeadItem({
               e.stopPropagation();
               handleToggle();
             }}
-            className={`min-h-[36px] px-2.5 py-1 text-[11px] font-medium rounded-full transition-colors whitespace-nowrap cursor-pointer active:scale-95 ${
+            className={`px-2.5 py-1 text-[11px] font-bold rounded-full transition-colors whitespace-nowrap cursor-pointer active:scale-95 ${
               isInTray
                 ? "bg-emerald-600/15 text-emerald-600 hover:bg-destructive/10 hover:text-destructive"
                 : "bg-primary/10 hover:bg-primary/20 text-primary"
             }`}
           >
-            {isInTray ? "✓ Added" : "+ Collect"}
+            {isInTray ? "✓ Added" : "Collect"}
           </button>
         </div>
       </div>
@@ -127,7 +127,7 @@ export function BeadLibrary({
               <span className="material-symbols-outlined text-primary text-xl">category</span>
               Bead Catalog
             </h2>
-            <p className="text-[12px] text-muted-foreground mt-0.5">Click "+ Collect" to add items into your Crafting Tray.</p>
+            <p className="text-[12px] text-muted-foreground mt-0.5">Click "Collect" to add items into your Crafting Tray.</p>
           </div>
         </div>
 

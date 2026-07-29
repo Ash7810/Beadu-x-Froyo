@@ -45,7 +45,8 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
           phone: customerPhone,
           wristInches: config.wristInches,
           address,
-          totalPrice: pricing.total,
+          totalPrice: 0, // Event complimentary checkout
+          calculatedValuation: pricing.total,
         }),
       });
 
@@ -112,21 +113,80 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
               </p>
             </div>
 
-            {/* Design Summary Strip */}
-            <div className="bg-muted/40 p-3 rounded-xl border border-border space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Placed Components:</span>
-                <span className="font-semibold text-foreground">{placedBeads.length} Beads</span>
+            {/* Design Summary Strip with Bead Counts */}
+            <div className="bg-muted/40 p-3.5 rounded-xl border border-border space-y-3 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">Total Beads Placed:</span>
+                <span className="font-bold text-foreground bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
+                  {placedBeads.length} Beads
+                </span>
               </div>
-              <div className="flex justify-between">
+
+              {/* Itemized Bead Breakdown */}
+              <div className="space-y-1.5 pt-2 border-t border-border/60">
+                <span className="block text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                  Beads Used Summary:
+                </span>
+                <div className="max-h-36 overflow-y-auto pr-1 space-y-1.5 divide-y divide-border/30">
+                  {Object.entries(
+                    placedBeads.reduce((acc, bead) => {
+                      const name = bead.name || bead.id;
+                      if (!acc[name]) {
+                        acc[name] = { count: 0, imageUrl: bead.imageUrl, price: bead.price };
+                      }
+                      acc[name].count += 1;
+                      return acc;
+                    }, {} as Record<string, { count: number; imageUrl: string; price: number }>)
+                  ).map(([name, item]) => (
+                    <div key={name} className="pt-1.5 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={name}
+                            className="w-5 h-5 rounded-full object-cover border border-primary/30 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-primary/20 shrink-0" />
+                        )}
+                        <span className="font-medium text-foreground">{name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="font-bold text-primary bg-background px-2 py-0.5 rounded border border-border">
+                          x{item.count}
+                        </span>
+                        {item.price > 0 && (
+                          <span className="text-muted-foreground text-[11px]">
+                            (₹{item.price * item.count})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-2 border-t border-border/60">
                 <span className="text-muted-foreground">Strand Spec:</span>
                 <span className="font-semibold text-foreground capitalize">Artisan Strand • {config.wristInches}" fit</span>
               </div>
-              <div className="flex justify-between text-sm pt-1 border-t border-border/60">
-                <span className="font-bold text-foreground">Total Valuation:</span>
-                <span className="font-display font-bold text-primary">
-                  {pricing.total === 0 ? "Complimentary" : `₹${pricing.total}`}
-                </span>
+              <div className="flex justify-between items-center text-sm pt-2 border-t border-border/60">
+                <div>
+                  <span className="font-bold text-foreground block">Total Pricing:</span>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                    Event Special Offer
+                  </span>
+                </div>
+                <div className="text-right">
+                  {pricing.total > 0 && (
+                    <span className="text-xs text-muted-foreground line-through block">
+                      ₹{pricing.total}
+                    </span>
+                  )}
+                  <span className="font-display font-bold text-emerald-600 dark:text-emerald-400 text-lg">
+                    FREE
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -192,9 +252,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
                 >
                   {submitting
                     ? "Processing Order..."
-                    : pricing.total === 0
-                    ? "Claim Complimentary Bracelet"
-                    : `Submit & Order (₹${pricing.total})`}
+                    : "Submit & Order (Free)"}
                 </button>
               </div>
             </form>
