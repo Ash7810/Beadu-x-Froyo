@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useMemo, useCallback } from "react";
 import { Bead } from "@/lib/types";
 
 type Props = {
@@ -111,12 +109,22 @@ export function BeadLibrary({
     });
   }, [beads]);
 
-  const filtered = beads.filter((b) => {
-    const matchesSearch =
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.material.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+  const filtered = useMemo(() => {
+    return beads.filter((b) => {
+      return b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             b.material.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [beads, searchQuery]);
+
+  const handleSelectBeadInternal = useCallback((b: Bead) => {
+    if (activeBeadId === b.id || trayBeadIds.includes(b.id)) {
+      setActiveBeadId(null);
+      onRemoveFromTrayByBeadId?.(b.id);
+    } else {
+      setActiveBeadId(b.id);
+      onSelectBead(b);
+    }
+  }, [activeBeadId, trayBeadIds, onSelectBead, onRemoveFromTrayByBeadId]);
 
   return (
     <div className="flex h-full flex-col gap-3.5 bg-card p-1 sm:p-2 font-sans select-none min-h-0">
@@ -160,15 +168,7 @@ export function BeadLibrary({
               bead={bead}
               isSelected={activeBeadId === bead.id}
               isInTray={trayBeadIds.includes(bead.id)}
-              onSelectBead={(b) => {
-                if (activeBeadId === b.id || trayBeadIds.includes(b.id)) {
-                  setActiveBeadId(null);
-                  onRemoveFromTrayByBeadId?.(b.id);
-                } else {
-                  setActiveBeadId(b.id);
-                  onSelectBead(b);
-                }
-              }}
+              onSelectBead={handleSelectBeadInternal}
               onAddToTray={onAddToTray}
               onRemoveFromTrayByBeadId={onRemoveFromTrayByBeadId}
             />
