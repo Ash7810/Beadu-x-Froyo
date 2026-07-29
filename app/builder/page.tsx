@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -27,10 +27,14 @@ function BuilderContent() {
   // then silently update from the API (DB may have admin overrides)
   const [liveBeads, setLiveBeads] = useState<Bead[]>(INITIAL_BEADS);
   const [customBeads, setCustomBeads] = useState<Bead[]>([]);
-  const beads: Bead[] = [...liveBeads, ...customBeads];
+  // Memoize so the array reference is stable across renders (avoids triggering useEffect deps)
+  const beads = useMemo<Bead[]>(() => [...liveBeads, ...customBeads], [liveBeads, customBeads]);
+  // Keep a ref so the preset loader can read the latest beads without being a dependency
+  const beadsRef = useRef<Bead[]>(beads);
+  useEffect(() => { beadsRef.current = beads; }, [beads]);
 
-  // Tray starts with first 6 catalog beads — no flash on load
-  const [trayBeads, setTrayBeads] = useState<Bead[]>(INITIAL_BEADS.slice(0, 6));
+  // Tray starts empty for a clean customer design session
+  const [trayBeads, setTrayBeads] = useState<Bead[]>([]);
 
   useEffect(() => {
     fetch("/api/beads")
@@ -38,19 +42,6 @@ function BuilderContent() {
       .then((data: Bead[]) => {
         if (Array.isArray(data) && data.length > 0) {
           setLiveBeads(data);
-          // Only update tray if the user hasn't manually changed it yet
-          setTrayBeads((prev) => {
-            // If tray IDs all still match the initial slice, replace with fetched data
-            const initialIds = new Set(INITIAL_BEADS.slice(0, 6).map((b) => b.id));
-            const isStillDefault = prev.length === 6 && prev.every((b) => initialIds.has(b.id));
-            if (isStillDefault) {
-              return data.slice(0, 6);
-            }
-            // User modified the tray — keep their selection, just filter out invalid IDs
-            const validIds = new Set(data.map((b: Bead) => b.id));
-            const filtered = prev.filter((b) => validIds.has(b.id));
-            return filtered.length > 0 ? filtered : data.slice(0, 6);
-          });
         }
       })
       .catch(() => {});
@@ -85,7 +76,7 @@ function BuilderContent() {
       const confirmed = window.confirm("Start a new customer? This will clear the current design.");
       if (confirmed) {
         startNewCustomer();
-        setTrayBeads(liveBeads.slice(0, 6));
+        setTrayBeads([]);
         setSelectedTrayBeadId(null);
         setSelectedPlacedBeadId(null);
         setCurrentStep(1);
@@ -123,39 +114,44 @@ function BuilderContent() {
   };
 
   const handleClearTray = () => {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm("Are you sure you want to clear all beads from your crafting tray?");
+      if (!confirmed) return;
+    }
     setTrayBeads([]);
     setSelectedTrayBeadId(null);
     setSelectedPlacedBeadId(null);
   };
 
-  // Preset Loader
+  // Preset Loader — reads beads via ref so it doesn't re-fire every time beads array updates
   useEffect(() => {
     const presetId = searchParams.get("preset");
-    if (presetId) {
-      const preset = PRESET_DESIGNS.find((p) => p.id === presetId);
-      if (preset) {
-        const loadedBeads: PlacedBead[] = [];
-        preset.beadIds.forEach((beadId, idx) => {
-          const found = beads.find((b) => b.id === beadId);
-          if (found) {
-            loadedBeads.push({
-              ...found,
-              slotIndex: idx,
-              rotation: 0,
-              placedId: `${found.id}-${idx}-${Date.now()}`,
-            });
-          }
+    if (!presetId) return;
+    const preset = PRESET_DESIGNS.find((p) => p.id === presetId);
+    if (!preset) return;
+
+    const latestBeads = beadsRef.current;
+    const loadedBeads: PlacedBead[] = [];
+    preset.beadIds.forEach((beadId, idx) => {
+      const found = latestBeads.find((b) => b.id === beadId);
+      if (found) {
+        loadedBeads.push({
+          ...found,
+          slotIndex: idx,
+          rotation: 0,
+          placedId: `${found.id}-${idx}-${Date.now()}`,
         });
-        const spec = getStrandSpecFromWrist(preset.wristInches || 7.0);
-        loadDesign(loadedBeads, {
-          wristInches: spec.wristInches,
-          totalSlots: spec.totalSlots,
-          freeSlotLimit: spec.freeSlotLimit,
-        });
-        setCurrentStep(2);
       }
-    }
-  }, [searchParams, loadDesign, beads]);
+    });
+    const spec = getStrandSpecFromWrist(preset.wristInches || 7.0);
+    loadDesign(loadedBeads, {
+      wristInches: spec.wristInches,
+      totalSlots: spec.totalSlots,
+      freeSlotLimit: spec.freeSlotLimit,
+    });
+    setCurrentStep(2);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, loadDesign]); // beads intentionally excluded — read via ref
 
   const handleSelectBead = (bead: Bead) => {
     handleAddToTray(bead);
@@ -413,24 +409,27 @@ function BuilderContent() {
       {/* STEP 1: SELECT BEADS FOR TRAY */}
       {/* ========================================================================= */}
       {currentStep === 1 && (
-        <div className="flex-1 flex flex-col min-h-0 p-2 sm:p-4 max-w-6xl mx-auto w-full gap-2 overflow-hidden">
-          <div className="flex-1 min-h-0 bg-card rounded-2xl border border-border/80 p-2.5 sm:p-5 shadow-xs flex flex-col">
-            <BeadLibrary
-              beads={beads}
-              trayBeadIds={trayBeads.map((b) => b.id)}
-              onSelectBead={handleSelectBead}
-              onAddToTray={handleAddToTray}
-              onRemoveFromTrayByBeadId={handleRemoveFromTrayByBeadId}
-            />
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative w-full">
+          {/* Fixed height layout that fills space but never scrolls */}
+          <div className="flex-1 min-h-0 p-2 sm:p-4 max-w-6xl mx-auto w-full pb-0 flex flex-col">
+            <div className="flex-1 min-h-0 bg-card rounded-2xl border border-border/80 p-2.5 sm:p-5 shadow-xs flex flex-col">
+              <BeadLibrary
+                beads={beads}
+                trayBeadIds={trayBeads.map((b) => b.id)}
+                onSelectBead={handleSelectBead}
+                onAddToTray={handleAddToTray}
+                onRemoveFromTrayByBeadId={handleRemoveFromTrayByBeadId}
+              />
+            </div>
           </div>
 
-          {/* Step 1 Bottom Bar - Compact & Flush */}
-          <div className="w-full shrink-0 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-            <div className="flex flex-row justify-between items-center bg-card/95 backdrop-blur-md border border-border/80 p-2.5 sm:p-3.5 rounded-2xl shadow-md gap-2">
+          {/* Sticky bottom action bar — always visible above mobile browser chrome */}
+          <div className="sticky bottom-0 left-0 right-0 z-20 w-full px-2 sm:px-4 max-w-6xl mx-auto shrink-0 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5 bg-gradient-to-t from-background via-background/95 to-transparent">
+            <div className="flex flex-row justify-between items-center bg-card/95 backdrop-blur-md border border-border/80 p-2.5 sm:p-3.5 rounded-2xl shadow-lg gap-2">
               <div className="text-xs flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-primary text-base">shopping_bag</span>
                 <div>
-                  <span className="text-muted-foreground font-medium hidden xs:inline">Tray Inventory: </span>
+                  <span className="text-muted-foreground font-medium hidden xs:inline">Tray: </span>
                   <strong className="text-foreground font-bold text-xs">{trayBeads.length} Selected</strong>
                 </div>
               </div>
@@ -450,8 +449,8 @@ function BuilderContent() {
       {/* STEP 2: DESIGN STRAND & CRAFTING TRAY */}
       {/* ========================================================================= */}
       {currentStep === 2 && (
-        <div className="flex-1 flex flex-col justify-between overflow-hidden p-2 sm:p-4 max-w-6xl mx-auto w-full gap-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-          {/* Main Interactive Strand Canvas Stage */}
+        <div className="flex-1 flex flex-col justify-between overflow-hidden px-2 pt-1.5 pb-2 sm:p-4 max-w-6xl mx-auto w-full gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          {/* Canvas — fills remaining vertical space */}
           <div className="flex-1 w-full min-h-0 flex items-center justify-center">
             <BraceletCanvas
               allBeads={beads}
@@ -462,7 +461,7 @@ function BuilderContent() {
             />
           </div>
 
-          {/* Bottom Crafting Tray */}
+          {/* Crafting Tray — fixed height at bottom */}
           <div className="w-full shrink-0">
             <CraftingTray
               trayBeads={trayBeads}
@@ -479,38 +478,37 @@ function BuilderContent() {
       {/* STEP 3: REVIEW & ORDERING PAGE */}
       {/* ========================================================================= */}
       {currentStep === 3 && (
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
-          <div className="text-center space-y-1.5">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="text-center space-y-1">
             <span className="text-xs uppercase font-bold tracking-widest text-primary">Custom Artisan Creation</span>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">Review Your Custom Order</h2>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+            <h2 className="font-display text-xl sm:text-3xl font-bold text-foreground">Review Your Order</h2>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
               Hand-finished by master jewelers to your exact wrist specifications.
             </p>
           </div>
 
-          {/* Design Summary Card */}
-          <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              {/* Left Mini Canvas Preview */}
-              <div className="w-full h-60 bg-muted/20 rounded-xl border border-border/80 flex items-center justify-center p-3 relative overflow-hidden shadow-inner">
+          <div className="bg-card border border-border/80 rounded-2xl p-4 sm:p-8 shadow-lg space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-center">
+              {/* Mini Canvas Preview — shorter on mobile */}
+              <div className="w-full h-44 sm:h-60 bg-muted/20 rounded-xl border border-border/80 flex items-center justify-center p-3 relative overflow-hidden shadow-inner">
                 <BraceletCanvas allBeads={beads} compact={true} readOnly={true} defaultViewMode="preview" />
               </div>
 
-              {/* Right Design Specs */}
-              <div className="space-y-4 text-xs">
-                <h3 className="font-display text-xl font-bold text-foreground">Custom Piece Specifications</h3>
+              {/* Design Specs */}
+              <div className="space-y-3 text-xs">
+                <h3 className="font-display text-lg sm:text-xl font-bold text-foreground">Order Specifications</h3>
 
-                <div className="space-y-2.5 border-t border-b border-border/60 py-3.5">
+                <div className="space-y-2 border-t border-b border-border/60 py-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground font-medium">Wrist Size (Fit):</span>
-                    <strong className="text-foreground font-bold">{config.wristInches.toFixed(1)} inches ({Math.round(config.wristInches * 2.54)} cm)</strong>
+                    <span className="text-muted-foreground font-medium">Wrist Size:</span>
+                    <strong className="text-foreground font-bold">{config.wristInches.toFixed(1)}" ({Math.round(config.wristInches * 2.54)} cm)</strong>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground font-medium">Cut Cable Spec:</span>
-                    <strong className="text-foreground font-bold">{(config.wristInches + 2.0).toFixed(1)}" (includes 2.0" knot allowance)</strong>
+                    <span className="text-muted-foreground font-medium">Cable Spec:</span>
+                    <strong className="text-foreground font-bold">{(config.wristInches + 2.0).toFixed(1)}" (incl. 2.0" knot)</strong>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground font-medium">Placed Components:</span>
+                    <span className="text-muted-foreground font-medium">Components:</span>
                     <strong className="text-foreground font-bold">{placedBeads.length} Beads</strong>
                   </div>
                 </div>
@@ -518,7 +516,7 @@ function BuilderContent() {
                 <div className="flex justify-between items-baseline pt-1">
                   <div>
                     <span className="block font-bold text-foreground text-sm">Total Valuation</span>
-                    <span className="text-[11px] text-muted-foreground">Includes artisan hand finishing & presentation box</span>
+                    <span className="text-[11px] text-muted-foreground">Incl. hand finishing &amp; box</span>
                   </div>
                   <span className="font-display text-2xl font-bold text-primary">
                     {pricing.total === 0 ? "Complimentary" : `₹${pricing.total}`}
@@ -527,14 +525,9 @@ function BuilderContent() {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-border/80 items-center">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(2)}
-                className="w-full sm:flex-1 text-xs font-bold py-3 rounded-full border-border/80"
-              >
-                ← Edit Strand & Size
+            <div className="flex flex-col sm:flex-row gap-3 pt-3 sm:pt-4 border-t border-border/80 items-center">
+              <Button variant="outline" onClick={() => setCurrentStep(2)} className="w-full sm:flex-1 text-xs font-bold py-3 rounded-full border-border/80">
+                ← Edit Strand &amp; Size
               </Button>
               <div className="w-full sm:flex-1 flex flex-col items-center gap-1.5">
                 <button
@@ -546,9 +539,7 @@ function BuilderContent() {
                       : "gold-shimmer text-on-primary-container hover:scale-[1.02] active:scale-98"
                   }`}
                 >
-                  {placedBeads.length === 0
-                    ? "Proceed to Checkout"
-                    : `Proceed to Checkout (${placedBeads.length} Beads)`}
+                  {placedBeads.length === 0 ? "Proceed to Checkout" : `Proceed to Checkout (${placedBeads.length} Beads)`}
                 </button>
                 {placedBeads.length === 0 && (
                   <span className="text-xs text-muted-foreground font-medium text-center animate-in fade-in">

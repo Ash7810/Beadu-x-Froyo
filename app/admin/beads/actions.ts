@@ -3,6 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
+// Revalidate all paths that serve bead data
+function revalidateBeadPaths() {
+  revalidatePath("/api/beads");
+  revalidatePath("/admin/beads");
+  revalidatePath("/builder");
+  revalidatePath("/", "layout"); // clears any layout-level cache too
+}
+
 export async function addBead(formData: FormData) {
   const id = (formData.get("id") as string)?.trim();
   if (!id) throw new Error("Bead ID is required");
@@ -36,7 +44,7 @@ export async function addBead(formData: FormData) {
     console.warn("Supabase connection error in addBead:", e?.message || e);
   }
 
-  revalidatePath("/admin/beads");
+  revalidateBeadPaths();
 }
 
 export async function updateBead(id: string, formData: FormData) {
@@ -69,7 +77,7 @@ export async function updateBead(id: string, formData: FormData) {
     console.warn("Supabase connection error in updateBead:", e?.message || e);
   }
 
-  revalidatePath("/admin/beads");
+  revalidateBeadPaths();
 }
 
 export async function deleteBead(id: string) {
@@ -86,5 +94,5 @@ export async function deleteBead(id: string) {
     console.warn("Supabase connection error in deleteBead:", e?.message || e);
   }
 
-  revalidatePath("/admin/beads");
+  revalidateBeadPaths();
 }

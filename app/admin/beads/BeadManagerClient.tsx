@@ -309,16 +309,58 @@ export function BeadManagerClient({ initialBeads }: Props) {
         </div>
       )}
 
-      {/* Catalog Table */}
+      {/* Catalog — Card Grid on mobile, Table on sm+ */}
       <div className="bg-card border border-border/80 rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-border/60 flex items-center justify-between">
+        <div className="p-3 sm:p-4 border-b border-border/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-foreground uppercase tracking-wider">Master Inventory</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">{beads.length} Items</span>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Card Grid (hidden sm+) */}
+        <div className="sm:hidden divide-y divide-border/60">
+          {beads.map((bead) => (
+            <div key={bead.id} className="p-3 flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full border border-primary/20 shrink-0 overflow-hidden bg-background shadow-xs">
+                {bead.imageUrl ? (
+                  <img src={bead.imageUrl} alt={bead.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-muted rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-muted-foreground text-sm">circle</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-foreground text-[13px] truncate">{bead.name}</p>
+                <p className="text-[11px] text-muted-foreground capitalize">{bead.category} · {bead.sizeMm || 8}mm</p>
+                <p className="text-[11px] font-semibold text-primary mt-0.5">
+                  {bead.price > 0 ? `₹${bead.price}` : "Free"}
+                  {bead.isPremium && <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-600">Premium</span>}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => { setEditingBead(bead); setEditImagePreview(bead.imageUrl); }}
+                  className="px-2.5 py-1 text-[11px] font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-0.5 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                  Edit
+                </button>
+                <form action={async () => { try { await deleteBead(bead.id); } catch (e) {} setBeads((prev) => prev.filter((b) => b.id !== bead.id)); }}>
+                  <button type="submit" className="w-full px-2.5 py-1 text-[11px] font-semibold text-destructive border border-destructive/30 hover:bg-destructive/10 rounded-full transition-colors flex items-center gap-0.5 cursor-pointer">
+                    <span className="material-symbols-outlined text-sm">delete</span>
+                    Del
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table (hidden below sm) */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-border/80 bg-muted/40 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -333,7 +375,6 @@ export function BeadManagerClient({ initialBeads }: Props) {
             <tbody className="divide-y divide-border/60">
               {beads.map((bead) => (
                 <tr key={bead.id} className="hover:bg-muted/30 transition-colors">
-                  {/* Bead Info */}
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full border border-primary/20 p-0.5 shrink-0 bg-background shadow-xs">
@@ -352,63 +393,23 @@ export function BeadManagerClient({ initialBeads }: Props) {
                       </div>
                     </div>
                   </td>
-
                   <td className="px-4 py-3.5 capitalize font-medium text-foreground">{bead.category}</td>
-
                   <td className="px-4 py-3.5 font-bold">
-                    {bead.price > 0 ? (
-                      <span className="text-foreground">₹{bead.price}</span>
-                    ) : (
-                      <span className="text-emerald-600 font-bold">Complimentary</span>
-                    )}
+                    {bead.price > 0 ? <span className="text-foreground">₹{bead.price}</span> : <span className="text-emerald-600 font-bold">Complimentary</span>}
                   </td>
-
-                  <td className="px-4 py-3.5 font-medium text-foreground">
-                    {bead.sizeMm || 8}mm × {bead.widthMm || 8}mm
-                  </td>
-
+                  <td className="px-4 py-3.5 font-medium text-foreground">{bead.sizeMm || 8}mm × {bead.widthMm || 8}mm</td>
                   <td className="px-4 py-3.5 space-x-1">
-                    {bead.isPremium && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                        Premium
-                      </span>
-                    )}
-                    {bead.rotationAllowed && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                        Rotatable
-                      </span>
-                    )}
+                    {bead.isPremium && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">Premium</span>}
+                    {bead.rotationAllowed && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">Rotatable</span>}
                   </td>
-
-                  {/* Actions */}
                   <td className="px-4 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingBead(bead);
-                          setEditImagePreview(bead.imageUrl);
-                        }}
-                        className="px-3 py-1 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
-                      >
-                        <span className="material-symbols-outlined text-sm">edit</span>
-                        Edit
+                      <button type="button" onClick={() => { setEditingBead(bead); setEditImagePreview(bead.imageUrl); }} className="px-3 py-1 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer">
+                        <span className="material-symbols-outlined text-sm">edit</span>Edit
                       </button>
-
-                      <form
-                        action={async () => {
-                          try {
-                            await deleteBead(bead.id);
-                          } catch (e) {}
-                          setBeads((prev) => prev.filter((b) => b.id !== bead.id));
-                        }}
-                      >
-                        <button
-                          type="submit"
-                          className="px-3 py-1 text-xs font-semibold text-destructive border border-destructive/30 hover:bg-destructive/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-sm">delete</span>
-                          Delete
+                      <form action={async () => { try { await deleteBead(bead.id); } catch (e) {} setBeads((prev) => prev.filter((b) => b.id !== bead.id)); }}>
+                        <button type="submit" className="px-3 py-1 text-xs font-semibold text-destructive border border-destructive/30 hover:bg-destructive/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer">
+                          <span className="material-symbols-outlined text-sm">delete</span>Delete
                         </button>
                       </form>
                     </div>

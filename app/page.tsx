@@ -68,9 +68,6 @@ export default function Home() {
           </Link>
 
           <div className="hidden md:flex gap-8 items-center text-sm font-medium text-muted-foreground">
-            <a href="#collections" className="hover:text-primary transition-colors">
-              Collections
-            </a>
             <a href="#how-it-works" className="hover:text-primary transition-colors">
               Process
             </a>
@@ -98,7 +95,7 @@ export default function Home() {
           <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6">
 
             <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-normal text-foreground leading-tight tracking-tight">
-              Beadu x Froyo
+              Beadu
             </h1>
 
             <p className="text-sm sm:text-lg text-muted-foreground/90 max-w-2xl mx-auto leading-relaxed font-sans">
@@ -423,7 +420,7 @@ export default function Home() {
             <div className="bg-muted/40 p-4 rounded-xl flex justify-between text-xs font-medium">
               <div>
                 <span className="text-muted-foreground block">Artisan Collection</span>
-                <span className="text-foreground font-semibold">Beadu x Froyo</span>
+                <span className="text-foreground font-semibold">Beadu</span>
               </div>
               <div>
                 <span className="text-muted-foreground block">Primary Material</span>

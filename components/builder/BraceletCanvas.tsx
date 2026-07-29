@@ -267,6 +267,7 @@ function PlacedBeadItem({
   pos,
   baseBeadSize,
   isSelected,
+  viewMode = "strand",
   readOnly = false,
   onSelect,
 }: {
@@ -305,8 +306,9 @@ function PlacedBeadItem({
 
   const beadWidthMm = placed.widthMm || placed.sizeMm || (placed.size ? Math.round(placed.size * 8) : 8);
   const scaleFactor = beadWidthMm / 8;
-  // 1.3x compensates for PNG transparent margins so bead art fills ~80% of its slot
-  const beadSize = baseBeadSize * scaleFactor * 1.3;
+  // 1.235x compensates for PNG transparent margins (1.3 reduced by 5% only in preview mode)
+  const imageComp = viewMode === "preview" ? 1.235 : 1.3;
+  const beadSize = baseBeadSize * scaleFactor * imageComp;
   const rotationAngle = (pos.angle || 0) + (placed.rotation || 0);
 
   const isCustomBead = placed.category === "custom" || placed.id.startsWith("custom");
@@ -455,11 +457,11 @@ export function BraceletCanvas({
   const stepDistance = viewMode === "preview"
     ? totalArcLength / Math.max(1, previewSlotCount)
     : totalArcLength / (config.totalSlots - 1 || 1);
-  // Preview: fill 107% of each slot so ~0.1 cord sliver is visible (half of previous 0.2)
-  // (PNG has ~65% bead coverage, so 1.07 × 1.3 × 0.65 ≈ 0.90 → 10% gap)
+  // Preview: fill 101% of each slot so ~0.15 cord sliver is visible (5% more gap than previous 1.07)
+  // Strand: fill 88% so there is ample spacing to tap empty slots/placed beads for swapping
   const baseBeadSize = viewMode === "preview"
-    ? Math.max(22, Math.min(62, stepDistance * 1.07))
-    : Math.max(22, Math.min(44, stepDistance * 1.02));
+    ? Math.max(22, Math.min(62, stepDistance * 1.01))
+    : Math.max(22, Math.min(44, stepDistance * 0.88));
 
   const { centerX, centerY, rx, ry, startAngle, endAngle } = DEFAULT_STRAND_ARC;
 

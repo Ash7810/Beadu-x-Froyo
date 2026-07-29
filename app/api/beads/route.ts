@@ -20,26 +20,39 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (data && data.length > 0) {
-      // Merge: admin DB beads take precedence, then catalog fills the rest
-      const dbIds = new Set(data.map((r: any) => r.id));
-      const catalogOnly = INITIAL_BEADS.filter((b) => !dbIds.has(b.id));
+      const dbBeadsMap = new Map(data.map((r: any) => [
+        r.id,
+        {
+          id: r.id,
+          name: r.name,
+          category: r.category,
+          price: r.price,
+          material: r.material || "",
+          imageUrl: r.image_url || "",
+          isPremium: r.is_premium,
+          rotationAllowed: r.rotation_allowed,
+          size: r.size || (r.width_mm ? Number((r.width_mm / 8).toFixed(2)) : 1),
+          sizeMm: r.size_mm || 8,
+          widthMm: r.width_mm || 8,
+          active: r.active,
+        }
+      ]));
 
-      const dbBeads = data.map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        category: r.category,
-        price: r.price,
-        material: r.material || "",
-        imageUrl: r.image_url || "",
-        isPremium: r.is_premium,
-        rotationAllowed: r.rotation_allowed,
-        size: r.size || (r.width_mm ? Number((r.width_mm / 8).toFixed(2)) : 1),
-        sizeMm: r.size_mm || 8,
-        widthMm: r.width_mm || 8,
-        active: r.active,
-      }));
+      // 1. Reconstruct INITIAL_BEADS in order, overriding with DB values if they exist
+      const mergedList = INITIAL_BEADS.map((catBead) => {
+        if (dbBeadsMap.has(catBead.id)) {
+          return dbBeadsMap.get(catBead.id)!;
+        }
+        return catBead;
+      });
 
-      return NextResponse.json([...dbBeads, ...catalogOnly]);
+      // 2. Add brand-new beads created from Admin (not in INITIAL_BEADS), sorted alphabetically by ID
+      const initialIds = new Set(INITIAL_BEADS.map((b) => b.id));
+      const customDbBeads = Array.from(dbBeadsMap.values())
+        .filter((b) => !initialIds.has(b.id))
+        .sort((a, b) => a.id.localeCompare(b.id));
+
+      return NextResponse.json([...mergedList, ...customDbBeads]);
     }
   } catch (_) {
     // DB unavailable — serve catalog only
