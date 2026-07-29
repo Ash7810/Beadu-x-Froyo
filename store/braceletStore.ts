@@ -48,7 +48,7 @@ function pushHistory(state: BraceletState, next: PlacedBead[], newConfig?: Brace
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem("beadu_live_bracelet", JSON.stringify({ placedBeads: next, config }));
-    } catch (e) {}
+    } catch (e) { }
   }
   return {
     config,
@@ -87,7 +87,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
       ...bead,
       slotIndex,
       rotation: 0,
-      placedId: `${bead.id}-${Math.random().toString(36).substring(2, 9)}-${Date.now().toString(36)}`,
+      placedId: `${bead.id}-${crypto.randomUUID()}`,
     };
     set({ ...pushHistory(state, [...filtered, placed]), lastError: null });
     return true;
@@ -116,7 +116,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
       ...newBead,
       slotIndex: target.slotIndex,
       rotation: 0,
-      placedId: `${newBead.id}-${Math.random().toString(36).substring(2, 9)}-${Date.now().toString(36)}`,
+      placedId: `${newBead.id}-${crypto.randomUUID()}`,
     };
 
     const next = state.placedBeads.map((b) => (b.placedId === placedId ? replacement : b));
@@ -183,7 +183,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     const clone: PlacedBead = {
       ...original,
       slotIndex: openSlot,
-      placedId: `${original.id}-${Math.random().toString(36).substring(2, 9)}-${Date.now().toString(36)}`,
+      placedId: `${original.id}-${crypto.randomUUID()}`,
     };
     set(pushHistory(state, [...state.placedBeads, clone]));
   },
@@ -252,7 +252,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem("beadu_live_bracelet");
-      } catch (e) {}
+      } catch (e) { }
     }
     set({
       config: DEFAULT_CONFIG,
@@ -294,7 +294,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem("beadu_live_bracelet");
-      } catch (e) {}
+      } catch (e) { }
     }
     set({
       config: DEFAULT_CONFIG,

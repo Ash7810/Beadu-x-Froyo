@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { INITIAL_BEADS } from "@/lib/catalog";
@@ -64,10 +65,19 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-background/80 dark:bg-background/80 backdrop-blur-xl border-b border-border/40 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 md:px-12 py-3 md:py-4">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/beadu-logo.png" alt="Beadu" className="h-7 sm:h-8 md:h-10 object-contain" />
+            <Image
+              src="/beadu-logo.png"
+              alt="Beadu"
+              width={120}
+              height={48}
+              className="h-7 sm:h-8 md:h-10 object-contain"
+            />
           </Link>
 
           <div className="hidden md:flex gap-8 items-center text-sm font-medium text-muted-foreground">
+            <a href="#collections" className="hover:text-primary transition-colors">
+              Collections
+            </a>
             <a href="#how-it-works" className="hover:text-primary transition-colors">
               Process
             </a>
@@ -95,7 +105,7 @@ export default function Home() {
           <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6">
 
             <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-normal text-foreground leading-tight tracking-tight">
-              Beadu
+              Beadu x Froyo
             </h1>
 
             <p className="text-sm sm:text-lg text-muted-foreground/90 max-w-2xl mx-auto leading-relaxed font-sans">
@@ -112,15 +122,17 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Floating Hero Visual */}
           <div className="mt-8 sm:mt-12 md:mt-16 relative w-full max-w-5xl mx-auto">
-            <div className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 border-2 sm:border-4 border-white/80 dark:border-white/10">
-              <div
-                className="w-full h-full bg-cover bg-center"
-                style={{
-                  backgroundImage:
-                    "url('/beads/pomelli_photoshoot-3.png')",
-                }}
-              />
+            <div className="floating relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 border-2 sm:border-4 border-white/80 dark:border-white/10">
+              <div className="relative w-full h-full transition-transform duration-1000 hover:scale-105">
+                <Image
+                  src="/beads/pomelli_photoshoot-3.png"
+                  alt="Handcrafted bead bracelet hero image"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
               <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 flex justify-between items-end text-white text-left">
 
@@ -162,11 +174,12 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Explore our curated selection of high-grade materials, precious metals, natural pearls, and hand-sculpted charms.
                 </p>
-                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm bg-muted/10">
-                  <img
-                    className="w-full h-full object-contain"
-                    alt="Artisan terracotta red and orange wood bead bracelet"
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm">
+                  <Image
                     src="/beads/pomelli_photoshoot_image_9_16_0726 (4).png"
+                    alt="Artisan terracotta red and orange wood bead bracelet"
+                    fill
+                    className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
               </div>
@@ -180,11 +193,12 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Use our fluid digital builder to arrange your components and visualize your signature look in real-time.
                 </p>
-                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm bg-muted/10">
-                  <img
-                    className="w-full h-full object-contain"
-                    alt="Design custom Indian handmade bracelet"
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm">
+                  <Image
                     src="/beads/pomelli_photoshoot_image_9_16_0726.png"
+                    alt="Design custom Indian handmade bracelet"
+                    fill
+                    className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
               </div>
@@ -198,11 +212,12 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Hand-finished by master jewelers and delivered in our signature velvet-lined presentation box.
                 </p>
-                <div className="w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm bg-muted/10">
-                  <img
-                    className="w-full h-full object-contain"
-                    alt="Hand-finished artisan bracelet on wrist"
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden mt-4 shadow-sm">
+                  <Image
                     src="/beads/pomelli_photoshoot_image_9_16_0726 (3).png"
+                    alt="Hand-finished artisan bracelet on wrist"
+                    fill
+                    className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
               </div>
@@ -236,14 +251,17 @@ export default function Home() {
                 <div
                   key={index}
                   onClick={() => setSelectedGalleryItem(item)}
-                  className="min-w-[260px] sm:min-w-[340px] h-[360px] sm:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer border border-border shadow-md hover:shadow-2xl transition-all duration-300 snap-start"
+                  className="min-w-[260px] sm:min-w-[340px] h-[360px] sm:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer border border-border shadow-md hover:shadow-2xl transition-all duration-500 snap-start"
                 >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity duration-300 flex flex-col justify-end p-5 sm:p-6 text-white">
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 sm:p-6 text-white">
                     <h3 className="font-display text-xl sm:text-2xl font-light">{item.title}</h3>
                     <p className="text-xs opacity-80 mt-1 line-clamp-2">{item.description}</p>
                     <div className="mt-3 sm:mt-4 pt-3 border-t border-white/20 flex justify-between items-center text-xs">
@@ -301,11 +319,12 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="md:w-1/2 relative min-h-[240px] sm:min-h-[350px]">
-              <img
-                className="w-full h-full object-cover"
-                alt="Authentic Indian handcrafted wrist jewelry photoshoot"
+            <div className="md:w-1/2 relative min-h-[240px] sm:min-h-[350px] overflow-hidden">
+              <Image
                 src="/beads/newimg.png"
+                alt="Authentic Indian handcrafted wrist jewelry photoshoot"
+                fill
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-primary/10 mix-blend-multiply" />
             </div>
@@ -406,8 +425,13 @@ export default function Home() {
             >
               <span className="material-symbols-outlined">close</span>
             </button>
-            <div className="aspect-video w-full rounded-xl overflow-hidden bg-muted/20 border border-border/60">
-              <img src={selectedGalleryItem.image} alt={selectedGalleryItem.title} className="w-full h-full object-contain" />
+            <div className="relative aspect-video w-full rounded-xl overflow-hidden">
+              <Image
+                src={selectedGalleryItem.image}
+                alt={selectedGalleryItem.title}
+                fill
+                className="object-cover"
+              />
             </div>
             <div>
               <span className="text-xs uppercase font-bold tracking-widest text-primary">
@@ -419,7 +443,7 @@ export default function Home() {
             <div className="bg-muted/40 p-4 rounded-xl flex justify-between text-xs font-medium">
               <div>
                 <span className="text-muted-foreground block">Artisan Collection</span>
-                <span className="text-foreground font-semibold">Beadu</span>
+                <span className="text-foreground font-semibold">Beadu x Froyo</span>
               </div>
               <div>
                 <span className="text-muted-foreground block">Primary Material</span>

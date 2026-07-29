@@ -1,4 +1,6 @@
-import { useState, useEffect, memo, useMemo, useCallback } from "react";
+"use client";
+
+import { useState, useEffect, memo } from "react";
 import { Bead } from "@/lib/types";
 
 type Props = {
@@ -35,9 +37,8 @@ export const BeadItem = memo(function BeadItem({
   return (
     <div
       onClick={handleToggle}
-      className={`group relative flex flex-col items-center justify-between p-2 sm:p-3 rounded-2xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition-all cursor-pointer select-none ${
-        isInTray ? "border-emerald-500/60 bg-emerald-500/5 hover:bg-emerald-500/10" : ""
-      }`}
+      className={`group relative flex flex-col items-center justify-between p-2 sm:p-3 rounded-2xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition-all cursor-pointer select-none ${isInTray ? "border-emerald-500/60 bg-emerald-500/5 hover:bg-emerald-500/10" : ""
+        }`}
     >
       {isSelected ? (
         <span className="absolute left-2 top-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-xs">
@@ -53,9 +54,8 @@ export const BeadItem = memo(function BeadItem({
         </span>
       ) : null}
 
-      <div className={`relative w-12 h-12 sm:w-16 sm:h-16 my-1 mt-3 flex items-center justify-center transition-all ${
-        isSelected ? "scale-105" : "group-hover:scale-105"
-      }`}>
+      <div className={`relative w-12 h-12 sm:w-16 sm:h-16 my-1 mt-3 flex items-center justify-center transition-all ${isSelected ? "scale-105" : "group-hover:scale-105"
+        }`}>
         <img
           src={bead.imageUrl}
           alt={bead.name}
@@ -76,11 +76,10 @@ export const BeadItem = memo(function BeadItem({
               e.stopPropagation();
               handleToggle();
             }}
-            className={`px-2.5 py-1 text-[11px] font-bold rounded-full transition-colors whitespace-nowrap cursor-pointer active:scale-95 ${
-              isInTray
+            className={`px-2.5 py-1 text-[11px] font-bold rounded-full transition-colors whitespace-nowrap cursor-pointer active:scale-95 ${isInTray
                 ? "bg-emerald-600/15 text-emerald-600 hover:bg-destructive/10 hover:text-destructive"
                 : "bg-primary/10 hover:bg-primary/20 text-primary"
-            }`}
+              }`}
           >
             {isInTray ? "✓ Added" : "Collect"}
           </button>
@@ -109,22 +108,12 @@ export function BeadLibrary({
     });
   }, [beads]);
 
-  const filtered = useMemo(() => {
-    return beads.filter((b) => {
-      return b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             b.material.toLowerCase().includes(searchQuery.toLowerCase());
-    });
-  }, [beads, searchQuery]);
-
-  const handleSelectBeadInternal = useCallback((b: Bead) => {
-    if (activeBeadId === b.id || trayBeadIds.includes(b.id)) {
-      setActiveBeadId(null);
-      onRemoveFromTrayByBeadId?.(b.id);
-    } else {
-      setActiveBeadId(b.id);
-      onSelectBead(b);
-    }
-  }, [activeBeadId, trayBeadIds, onSelectBead, onRemoveFromTrayByBeadId]);
+  const filtered = beads.filter((b) => {
+    const matchesSearch =
+      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.material.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
 
   return (
     <div className="flex h-full flex-col gap-3.5 bg-card p-1 sm:p-2 font-sans select-none min-h-0">
@@ -168,7 +157,15 @@ export function BeadLibrary({
               bead={bead}
               isSelected={activeBeadId === bead.id}
               isInTray={trayBeadIds.includes(bead.id)}
-              onSelectBead={handleSelectBeadInternal}
+              onSelectBead={(b) => {
+                if (activeBeadId === b.id || trayBeadIds.includes(b.id)) {
+                  setActiveBeadId(null);
+                  onRemoveFromTrayByBeadId?.(b.id);
+                } else {
+                  setActiveBeadId(b.id);
+                  onSelectBead(b);
+                }
+              }}
               onAddToTray={onAddToTray}
               onRemoveFromTrayByBeadId={onRemoveFromTrayByBeadId}
             />

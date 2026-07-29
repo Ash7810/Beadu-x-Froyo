@@ -387,11 +387,10 @@ function ClearStrandButton({ onClearStrand }: { onClearStrand: () => void }) {
     <button
       ref={setNodeRef}
       onClick={handleClick}
-      className={`w-8 h-8 rounded-full border transition-all shadow-xs flex items-center justify-center ml-2 ${
-        isOver
+      className={`w-8 h-8 rounded-full border transition-all shadow-xs flex items-center justify-center ml-2 ${isOver
           ? "bg-destructive text-white border-destructive scale-125 ring-4 ring-destructive/30"
           : "bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 hover:border-destructive/60"
-      }`}
+        }`}
       title="Clear strand or drag bead here to delete"
     >
       <span className="material-symbols-outlined text-sm">delete_forever</span>
@@ -445,7 +444,7 @@ export function BraceletCanvas({
   }, [config.wristInches]);
 
   const previewSlotCount = Math.max(1, placedBeads.length);
-  const { positions: slots, totalArcLength } = viewMode === "preview" 
+  const { positions: slots, totalArcLength } = viewMode === "preview"
     ? getClosedLoopSlotPositions(previewSlotCount)
     : getUniformSlotPositions(config.totalSlots, DEFAULT_STRAND_ARC);
 
@@ -530,7 +529,7 @@ export function BraceletCanvas({
                 <span className="material-symbols-outlined text-primary text-base">straighten</span>
                 <span className="text-foreground font-medium text-[13px]">Wrist:</span>
               </div>
-              
+
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setWristInches(Math.max(4.5, Math.round((config.wristInches - 0.1) * 10) / 10))}
@@ -579,13 +578,12 @@ export function BraceletCanvas({
               </strong>
               <div className="flex-1 sm:w-16 h-2 rounded-full bg-muted/90 overflow-hidden border border-border/70 max-w-[120px] sm:max-w-none">
                 <div
-                  className={`h-full transition-all duration-300 ${
-                    physCap.percentUsed >= 100 || physCap.isFull
+                  className={`h-full transition-all duration-300 ${physCap.percentUsed >= 100 || physCap.isFull
                       ? "bg-destructive"
                       : physCap.percentUsed >= 80
-                      ? "bg-amber-600"
-                      : "bg-primary"
-                  }`}
+                        ? "bg-amber-600"
+                        : "bg-primary"
+                    }`}
                   style={{
                     width: physCap.usedMm > 0 ? `${Math.max(8, physCap.percentUsed)}%` : "0%",
                   }}
@@ -599,9 +597,8 @@ export function BraceletCanvas({
             <div className="flex bg-card p-0.5 rounded-full border border-border/80 shadow-xs min-h-[40px] items-center">
               <button
                 onClick={() => setViewMode("strand")}
-                className={`px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 transition-all min-h-[36px] cursor-pointer ${
-                  viewMode === "strand" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 transition-all min-h-[36px] cursor-pointer ${viewMode === "strand" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
                 title="Strand View (Interactive Builder)"
               >
                 <span className="material-symbols-outlined text-sm">polyline</span>
@@ -609,9 +606,8 @@ export function BraceletCanvas({
               </button>
               <button
                 onClick={() => setViewMode("preview")}
-                className={`px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 transition-all min-h-[36px] cursor-pointer ${
-                  viewMode === "preview" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 transition-all min-h-[36px] cursor-pointer ${viewMode === "preview" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
                 title="Preview Mode (Closed Loop Product Shot)"
               >
                 <span className="material-symbols-outlined text-sm">visibility</span>
@@ -639,9 +635,8 @@ export function BraceletCanvas({
       )}
 
       {/* Main Interactive Canvas Stage */}
-      <div className={`relative w-full max-w-[750px] flex items-center justify-center my-auto ${
-        compact ? "h-full" : viewMode === "preview" ? "h-[220px] sm:h-[280px]" : "h-[180px] sm:h-[200px]"
-      }`}>
+      <div className={`relative w-full max-w-[750px] flex items-center justify-center my-auto ${compact ? "h-full" : viewMode === "preview" ? "h-[220px] sm:h-[280px]" : "h-[180px] sm:h-[200px]"
+        }`}>
 
         <svg viewBox={`0 0 ${CANVAS_WIDTH} ${viewMode === "preview" ? CANVAS_HEIGHT_PREVIEW : CANVAS_HEIGHT}`} className="w-full h-full z-10 rounded-2xl">
           <defs>
@@ -775,7 +770,7 @@ export function BraceletCanvas({
             const physMap = new Map(physPositions.map((p) => [p.placedId, p]));
 
             let beadsToRender = viewMode === "preview" ? sortedBeadsForPreview! : placedBeads;
-            
+
             // In closed loop preview, sort by Y-coordinate so top (back) beads render behind bottom (front) beads
             if (viewMode === "preview" && sortedBeadsForPreview) {
               beadsToRender = [...sortedBeadsForPreview].sort((a, b) => {
