@@ -13,28 +13,41 @@ function rotateImageBase64(imageUrl: string, rotationDeg: number): Promise<strin
 
   return new Promise((resolve) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    // Only set crossOrigin for external HTTP(S) URLs to prevent same-origin canvas tainting
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      img.crossOrigin = "anonymous";
+    }
+
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(imageUrl);
+          return;
+        }
+
+        const rad = (rotationDeg * Math.PI) / 180;
+        const is90or270 = rotationDeg === 90 || rotationDeg === 270;
+
+        canvas.width = is90or270 ? img.height : img.width;
+        canvas.height = is90or270 ? img.width : img.height;
+
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+        const rotatedDataUrl = canvas.toDataURL("image/png");
+        resolve(rotatedDataUrl);
+      } catch (err) {
+        console.error("Image rotation canvas error:", err);
         resolve(imageUrl);
-        return;
       }
-
-      const rad = (rotationDeg * Math.PI) / 180;
-      const is90or270 = rotationDeg === 90 || rotationDeg === 270;
-
-      canvas.width = is90or270 ? img.height : img.width;
-      canvas.height = is90or270 ? img.width : img.height;
-
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(rad);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
-
-      resolve(canvas.toDataURL("image/png"));
     };
-    img.onerror = () => resolve(imageUrl);
+    img.onerror = (err) => {
+      console.error("Image rotation load error:", err);
+      resolve(imageUrl);
+    };
     img.src = imageUrl;
   });
 }
