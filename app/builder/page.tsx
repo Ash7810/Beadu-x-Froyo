@@ -100,6 +100,21 @@ function BuilderContent() {
     }
   }, [searchParams, reset]);
 
+  // Restore saved design from localStorage on initial page refresh mount
+  useEffect(() => {
+    if (typeof window !== "undefined" && !searchParams.get("new") && !searchParams.get("preset")) {
+      try {
+        const saved = localStorage.getItem("beadu_live_bracelet");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && Array.isArray(parsed.placedBeads)) {
+            loadDesign(parsed.placedBeads, parsed.config);
+          }
+        }
+      } catch (e) {}
+    }
+  }, [loadDesign, searchParams]);
+
   const handleAddToTray = (bead: Bead) => {
     if (trayBeads.some((b) => b.id === bead.id)) {
       return;

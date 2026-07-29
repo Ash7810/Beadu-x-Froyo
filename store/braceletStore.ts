@@ -87,7 +87,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
       ...bead,
       slotIndex,
       rotation: 0,
-      placedId: `${bead.id}-${crypto.randomUUID()}`,
+      placedId: `${bead.id}-${Math.random().toString(36).substring(2, 9)}-${Date.now().toString(36)}`,
     };
     set({ ...pushHistory(state, [...filtered, placed]), lastError: null });
     return true;
@@ -116,7 +116,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
       ...newBead,
       slotIndex: target.slotIndex,
       rotation: 0,
-      placedId: `${newBead.id}-${crypto.randomUUID()}`,
+      placedId: `${newBead.id}-${Math.random().toString(36).substring(2, 9)}-${Date.now().toString(36)}`,
     };
 
     const next = state.placedBeads.map((b) => (b.placedId === placedId ? replacement : b));
@@ -183,7 +183,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     const clone: PlacedBead = {
       ...original,
       slotIndex: openSlot,
-      placedId: `${original.id}-${crypto.randomUUID()}`,
+      placedId: `${original.id}-${Math.random().toString(36).substring(2, 9)}-${Date.now().toString(36)}`,
     };
     set(pushHistory(state, [...state.placedBeads, clone]));
   },

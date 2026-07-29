@@ -38,25 +38,41 @@ async function fetchBeads(): Promise<Bead[]> {
       return INITIAL_BEADS;
     }
 
-    const dbBeads: Bead[] = (data as DbBeadRow[]).map((r) => ({
-      id: r.id,
-      name: r.name,
-      category: r.category as any,
-      price: r.price,
-      material: r.material || "",
-      imageUrl: r.image_url || "",
-      isPremium: r.is_premium,
-      rotationAllowed: r.rotation_allowed,
-      size: r.size || (r.width_mm ? Number((r.width_mm / 8).toFixed(2)) : 1),
-      sizeMm: r.size_mm || 8,
-      widthMm: r.width_mm || 8,
-      active: r.active,
-    }));
+    const dbBeadsMap = new Map(
+      (data as DbBeadRow[]).map((r) => [
+        r.id,
+        {
+          id: r.id,
+          name: r.name,
+          category: r.category as any,
+          price: r.price,
+          material: r.material || "",
+          imageUrl: r.image_url || "",
+          isPremium: r.is_premium,
+          rotationAllowed: r.rotation_allowed,
+          size: r.size || (r.width_mm ? Number((r.width_mm / 8).toFixed(2)) : 1),
+          sizeMm: r.size_mm || 8,
+          widthMm: r.width_mm || 8,
+          active: r.active,
+        }
+      ])
+    );
 
-    // Merge: DB beads override catalog beads with same ID, then append catalog-only
-    const dbIds = new Set(dbBeads.map((b) => b.id));
-    const catalogOnly = INITIAL_BEADS.filter((b) => !dbIds.has(b.id));
-    return [...dbBeads, ...catalogOnly];
+    // 1. Reconstruct INITIAL_BEADS in order, overriding with DB values
+    const mergedList = INITIAL_BEADS.map((catBead) => {
+      if (dbBeadsMap.has(catBead.id)) {
+        return dbBeadsMap.get(catBead.id)!;
+      }
+      return catBead;
+    });
+
+    // 2. Add brand-new beads created from Admin, sorted alphabetically by ID
+    const initialIds = new Set(INITIAL_BEADS.map((b) => b.id));
+    const customDbBeads = Array.from(dbBeadsMap.values())
+      .filter((b) => !initialIds.has(b.id))
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    return [...mergedList, ...customDbBeads];
   } catch (e) {
     return INITIAL_BEADS;
   }
