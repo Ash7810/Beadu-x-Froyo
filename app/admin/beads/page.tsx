@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getSupabaseAdmin } from "@/lib/supabase";
 import { INITIAL_BEADS } from "@/lib/catalog";
 import { Bead } from "@/lib/types";
 import { BeadManagerClient } from "./BeadManagerClient";
@@ -28,16 +27,18 @@ type DbBeadRow = {
 
 async function fetchBeads(): Promise<Bead[]> {
   try {
+    const { getSupabaseAdmin } = await import("@/lib/supabase");
     const { data, error } = await getSupabaseAdmin()
       .from("beads")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error || !data || data.length === 0) {
+      // DB empty — show catalog beads only
       return INITIAL_BEADS;
     }
 
-    return (data as DbBeadRow[]).map((r) => ({
+    const dbBeads: Bead[] = (data as DbBeadRow[]).map((r) => ({
       id: r.id,
       name: r.name,
       category: r.category as any,
@@ -51,6 +52,11 @@ async function fetchBeads(): Promise<Bead[]> {
       widthMm: r.width_mm || 8,
       active: r.active,
     }));
+
+    // Merge: DB beads override catalog beads with same ID, then append catalog-only
+    const dbIds = new Set(dbBeads.map((b) => b.id));
+    const catalogOnly = INITIAL_BEADS.filter((b) => !dbIds.has(b.id));
+    return [...dbBeads, ...catalogOnly];
   } catch (e) {
     return INITIAL_BEADS;
   }
@@ -58,6 +64,5 @@ async function fetchBeads(): Promise<Bead[]> {
 
 export default async function ManageBeadsPage() {
   const beads = await fetchBeads();
-
   return <BeadManagerClient initialBeads={beads} />;
 }

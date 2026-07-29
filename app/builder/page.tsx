@@ -23,26 +23,33 @@ import { CraftingTray } from "@/components/builder/CraftingTray";
 import { Button } from "@/components/ui/button";
 
 function BuilderContent() {
+  // Start with INITIAL_BEADS immediately so catalog never appears empty,
+  // then silently update from the API (DB may have admin overrides)
   const [liveBeads, setLiveBeads] = useState<Bead[]>(INITIAL_BEADS);
   const [customBeads, setCustomBeads] = useState<Bead[]>([]);
   const beads: Bead[] = [...liveBeads, ...customBeads];
 
-  // Crafting Tray state (pre-populated with starter beads)
+  // Tray starts with first 6 catalog beads — no flash on load
   const [trayBeads, setTrayBeads] = useState<Bead[]>(INITIAL_BEADS.slice(0, 6));
 
   useEffect(() => {
     fetch("/api/beads")
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: Bead[]) => {
         if (Array.isArray(data) && data.length > 0) {
           setLiveBeads(data);
+          // Only update tray if the user hasn't manually changed it yet
           setTrayBeads((prev) => {
-            const validIds = new Set(data.map((b: Bead) => b.id));
-            const filteredPrev = prev.filter((b) => validIds.has(b.id));
-            if (filteredPrev.length === 0) {
+            // If tray IDs all still match the initial slice, replace with fetched data
+            const initialIds = new Set(INITIAL_BEADS.slice(0, 6).map((b) => b.id));
+            const isStillDefault = prev.length === 6 && prev.every((b) => initialIds.has(b.id));
+            if (isStillDefault) {
               return data.slice(0, 6);
             }
-            return filteredPrev;
+            // User modified the tray — keep their selection, just filter out invalid IDs
+            const validIds = new Set(data.map((b: Bead) => b.id));
+            const filtered = prev.filter((b) => validIds.has(b.id));
+            return filtered.length > 0 ? filtered : data.slice(0, 6);
           });
         }
       })
@@ -91,10 +98,11 @@ function BuilderContent() {
     setTrayBeads((prev) => [...prev, newBead]);
   };
 
-  // LocalStorage persistence hydration on mount (clears any stale testing state if preset is not active)
+  // Only reset the bracelet store when explicitly loading a fresh session via ?new=1
+  // Do NOT reset on every mount — that was wiping the catalog/tray on every page load
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (!searchParams.get("preset")) {
+      if (searchParams.get("new") === "1") {
         reset();
       }
     }

@@ -232,7 +232,8 @@ function getClosedLoopSlotPositions(totalSlots: number) {
 function computeBaseBeadSize(totalArcLength: number, beadCount: number) {
   if (beadCount <= 0) return 32;
   const stepDistance = totalArcLength / Math.max(1, beadCount);
-  return Math.max(22, Math.min(44, stepDistance * 0.92));
+  // 1.78x: beads nearly kissing with ~1/2 of previous remaining gap
+  return Math.max(22, Math.min(76, stepDistance * 1.78));
 }
 
 function SlotItem({
@@ -304,8 +305,8 @@ function PlacedBeadItem({
 
   const beadWidthMm = placed.widthMm || placed.sizeMm || (placed.size ? Math.round(placed.size * 8) : 8);
   const scaleFactor = beadWidthMm / 8;
-  // Scale up image bounds by 1.35x to compensate for 500x500 PNG transparent margins
-  const beadSize = baseBeadSize * scaleFactor * 1.35;
+  // 1.3x compensates for PNG transparent margins so bead art fills ~80% of its slot
+  const beadSize = baseBeadSize * scaleFactor * 1.3;
   const rotationAngle = (pos.angle || 0) + (placed.rotation || 0);
 
   const isCustomBead = placed.category === "custom" || placed.id.startsWith("custom");
@@ -428,13 +429,17 @@ export function BraceletCanvas({
   const [viewMode, setViewMode] = useState<"strand" | "preview">(defaultViewMode || (compact ? "preview" : "strand"));
   const [mounted, setMounted] = useState(false);
   const [wristInputVal, setWristInputVal] = useState(config.wristInches.toFixed(1));
+  const wristFocused = useRef(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    setWristInputVal(config.wristInches.toFixed(1));
+    // Only sync config → input when user is NOT actively editing the field
+    if (!wristFocused.current) {
+      setWristInputVal(config.wristInches.toFixed(2));
+    }
   }, [config.wristInches]);
 
   const previewSlotCount = Math.max(1, placedBeads.length);
@@ -450,7 +455,11 @@ export function BraceletCanvas({
   const stepDistance = viewMode === "preview"
     ? totalArcLength / Math.max(1, previewSlotCount)
     : totalArcLength / (config.totalSlots - 1 || 1);
-  const baseBeadSize = Math.max(22, Math.min(44, stepDistance * 1.02));
+  // Preview: fill 107% of each slot so ~0.1 cord sliver is visible (half of previous 0.2)
+  // (PNG has ~65% bead coverage, so 1.07 × 1.3 × 0.65 ≈ 0.90 → 10% gap)
+  const baseBeadSize = viewMode === "preview"
+    ? Math.max(22, Math.min(62, stepDistance * 1.07))
+    : Math.max(22, Math.min(44, stepDistance * 1.02));
 
   const { centerX, centerY, rx, ry, startAngle, endAngle } = DEFAULT_STRAND_ARC;
 
@@ -470,20 +479,26 @@ export function BraceletCanvas({
     const valStr = e.target.value;
     setWristInputVal(valStr);
     const num = parseFloat(valStr);
-    if (!isNaN(num) && num >= 4.5 && num <= 10.0) {
-      setWristInches(Math.round(num * 10) / 10);
+    // Only commit to store when the value is complete and valid (not mid-typing like "7.")
+    if (!isNaN(num) && num >= 4.5 && num <= 10.0 && !valStr.endsWith(".")) {
+      setWristInches(Math.round(num * 100) / 100);
     }
   };
 
   const handleWristInputBlur = () => {
+    wristFocused.current = false;
     const num = parseFloat(wristInputVal);
     if (isNaN(num)) {
-      setWristInputVal(config.wristInches.toFixed(1));
+      setWristInputVal(config.wristInches.toFixed(2));
     } else {
-      const clamped = Math.max(4.5, Math.min(10.0, Math.round(num * 10) / 10));
+      const clamped = Math.max(4.5, Math.min(10.0, Math.round(num * 100) / 100));
       setWristInches(clamped);
-      setWristInputVal(clamped.toFixed(1));
+      setWristInputVal(clamped.toFixed(2));
     }
+  };
+
+  const handleWristInputFocus = () => {
+    wristFocused.current = true;
   };
 
   if (!mounted) {
@@ -527,13 +542,14 @@ export function BraceletCanvas({
                 <div className="flex items-center justify-center gap-0.5 bg-muted/80 px-2 py-1 rounded-md border border-border/80 focus-within:ring-1 focus-within:ring-primary/60 shadow-inner min-h-[36px]">
                   <input
                     type="number"
-                    step="0.1"
+                    step="0.05"
                     min="4.5"
                     max="10.0"
                     value={wristInputVal}
                     onChange={handleWristInputChange}
+                    onFocus={handleWristInputFocus}
                     onBlur={handleWristInputBlur}
-                    className="w-8 sm:w-7 text-[13px] font-medium text-primary text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0 m-0"
+                    className="w-10 sm:w-9 text-[13px] font-medium text-primary text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0 m-0"
                     aria-label="Wrist size in inches"
                     title="Type exact wrist size in inches"
                   />

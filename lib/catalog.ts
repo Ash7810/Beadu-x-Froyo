@@ -1,45 +1,6 @@
 import { Bead, PresetDesign } from "./types";
 
-
-// Helper function to create clean inline SVG Data URLs for beads & charms
-function makeSvgBead(color1: string, color2: string, label: string = "", shape: "circle" | "gem" | "charm" | "letter" = "circle"): string {
-  let svgInner = "";
-  if (shape === "circle") {
-    svgInner = `
-      <circle cx="32" cy="32" r="28" fill="url(#grad)" stroke="${color1}" stroke-width="2"/>
-      <circle cx="22" cy="20" r="8" fill="#ffffff" opacity="0.45"/>
-    `;
-  } else if (shape === "gem") {
-    svgInner = `
-      <polygon points="32,8 52,22 44,54 20,54 12,22" fill="url(#grad)" stroke="${color1}" stroke-width="2"/>
-      <polygon points="32,8 44,22 20,22" fill="#ffffff" opacity="0.4"/>
-      <polygon points="20,22 32,54 12,22" fill="#ffffff" opacity="0.2"/>
-    `;
-  } else if (shape === "charm") {
-    svgInner = `
-      <path d="M32 10 C 22 0, 8 14, 32 54 C 56 14, 42 0, 32 10 Z" fill="url(#grad)" stroke="${color1}" stroke-width="2"/>
-      <circle cx="32" cy="16" r="3" fill="#ffffff" opacity="0.6"/>
-    `;
-  } else if (shape === "letter") {
-    svgInner = `
-      <circle cx="32" cy="32" r="28" fill="url(#grad)" stroke="${color1}" stroke-width="2"/>
-      <text x="32" y="40" font-family="sans-serif" font-weight="bold" font-size="24" fill="#ffffff" text-anchor="middle">${label}</text>
-    `;
-  }
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-    <defs>
-      <radialGradient id="grad" cx="35%" cy="30%" r="70%">
-        <stop offset="0%" stop-color="${color2}" />
-        <stop offset="100%" stop-color="${color1}" />
-      </radialGradient>
-    </defs>
-    ${svgInner}
-  </svg>`;
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
-
+// Real photoshoot beads — 27 actual product photos processed to clean transparent PNGs
 export const INITIAL_BEADS: Bead[] = [
   {
     id: "bead-batch-a-001",
@@ -100,7 +61,7 @@ export const INITIAL_BEADS: Bead[] = [
   {
     id: "bead-batch-a-005",
     name: "Rose Quartz Heart Charm",
-    category: "charm",
+    category: "heart",
     price: 350,
     material: "Natural Rose Quartz",
     imageUrl: "/beads/batch_a_clean/bead_005.png",
@@ -184,7 +145,7 @@ export const INITIAL_BEADS: Bead[] = [
   {
     id: "bead-batch-a-011",
     name: "Artisan Kundan Solstice Sun",
-    category: "charm",
+    category: "premium-charm",
     price: 450,
     material: "Solid Brass & Kundan Glass",
     imageUrl: "/beads/batch_a_clean/bead_011.png",
@@ -282,7 +243,7 @@ export const INITIAL_BEADS: Bead[] = [
   {
     id: "bead-batch-a-018",
     name: "Copper Engraved Bar",
-    category: "charm",
+    category: "premium-charm",
     price: 350,
     material: "Recycled Copper",
     imageUrl: "/beads/batch_a_clean/bead_018.png",
@@ -380,7 +341,7 @@ export const INITIAL_BEADS: Bead[] = [
   {
     id: "bead-batch-a-025",
     name: "Golden Heart Spacer",
-    category: "charm",
+    category: "heart",
     price: 200,
     material: "18K Gold Plated Brass",
     imageUrl: "/beads/batch_a_clean/bead_025.png",
@@ -419,322 +380,88 @@ export const INITIAL_BEADS: Bead[] = [
     widthMm: 8,
     active: true,
   },
-  // Eco-Friendly Terracotta & Wood Basics (Complimentary Tier)
-  {
-    id: "bead-gold-classic",
-    name: "Artisan Terracotta Gold Sphere",
-    category: "gold",
-    price: 0,
-    material: "Hand-Molded Terracotta & Gold Leaf",
-    imageUrl: makeSvgBead("#b8860b", "#ffd700", "", "circle"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1,
-    sizeMm: 8,
-    widthMm: 8,
-    active: true,
-  },
-  {
-    id: "bead-silver-classic",
-    name: "Polished Rosewood Bead",
-    category: "silver",
-    price: 0,
-    material: "Sustainably Sourced Indian Rosewood",
-    imageUrl: makeSvgBead("#708090", "#e6e6fa", "", "circle"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1,
-    sizeMm: 8,
-    widthMm: 8,
-    active: true,
-  },
-  {
-    id: "bead-rose-gold",
-    name: "Hand-Blown Glass Amber",
-    category: "gold",
-    price: 0,
-    material: "Artisanal Blown Glass",
-    imageUrl: makeSvgBead("#b22222", "#ffb6c1", "", "circle"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1,
-    sizeMm: 8,
-    widthMm: 8,
-    active: true,
-  },
-
-  // Pearls & Crystals (Complimentary / Base Tier)
-  {
-    id: "bead-freshwater-pearl",
-    name: "Freshwater Pearl",
-    category: "pearl",
-    price: 0,
-    material: "Natural Freshwater Pearl",
-    imageUrl: makeSvgBead("#dcdcdc", "#ffffff", "", "circle"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1.1,
-    sizeMm: 10,
-    widthMm: 10,
-    active: true,
-  },
-  {
-    id: "bead-amethyst",
-    name: "Raw Amethyst Gem",
-    category: "crystal",
-    price: 0,
-    material: "Natural Indian Amethyst",
-    imageUrl: makeSvgBead("#4b0082", "#ba55d3", "", "gem"),
-    isPremium: false,
-    rotationAllowed: true,
-    size: 1,
-    sizeMm: 9,
-    widthMm: 9,
-    active: true,
-  },
-  {
-    id: "bead-rose-quartz",
-    name: "Rose Quartz Sphere",
-    category: "crystal",
-    price: 0,
-    material: "Natural Rose Quartz",
-    imageUrl: makeSvgBead("#db7093", "#ffc0cb", "", "circle"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1,
-    sizeMm: 8,
-    widthMm: 8,
-    active: true,
-  },
-  {
-    id: "bead-obsidian",
-    name: "Matte Terracotta Black",
-    category: "crystal",
-    price: 0,
-    material: "Fired Black Clay",
-    imageUrl: makeSvgBead("#000000", "#4f4f4f", "", "circle"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1,
-    sizeMm: 8,
-    widthMm: 8,
-    active: true,
-  },
-
-  // Alphabet & Zodiac Charms
-  {
-    id: "bead-letter-a",
-    name: "Hand-Engraved Brass 'A'",
-    category: "letter",
-    price: 0,
-    material: "Recycled Brass",
-    imageUrl: makeSvgBead("#735c00", "#d4af37", "A", "letter"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1,
-    sizeMm: 8,
-    widthMm: 8,
-    active: true,
-  },
-  {
-    id: "bead-letter-m",
-    name: "Hand-Engraved Brass 'M'",
-    category: "letter",
-    price: 0,
-    material: "Recycled Brass",
-    imageUrl: makeSvgBead("#735c00", "#d4af37", "M", "letter"),
-    isPremium: false,
-    rotationAllowed: false,
-    size: 1,
-    sizeMm: 8,
-    widthMm: 8,
-    active: true,
-  },
-  {
-    id: "bead-zodiac-leo",
-    name: "Zodiac Leo Emblem",
-    category: "zodiac",
-    price: 0,
-    material: "Hand-Carved Wooden Disc",
-    imageUrl: makeSvgBead("#8b4513", "#f4a460", "♌", "letter"),
-    isPremium: false,
-    rotationAllowed: true,
-    size: 1,
-    sizeMm: 9,
-    widthMm: 9,
-    active: true,
-  },
-
-  // Hearts & Birthstones
-  {
-    id: "bead-heart-gold",
-    name: "Gilded Clay Heart Charm",
-    category: "heart",
-    price: 0,
-    material: "Gold-Leafed Handmade Clay",
-    imageUrl: makeSvgBead("#8b0000", "#ff4500", "", "charm"),
-    isPremium: false,
-    rotationAllowed: true,
-    size: 1.2,
-    sizeMm: 12,
-    widthMm: 12,
-    active: true,
-  },
-  {
-    id: "bead-emerald-birthstone",
-    name: "Emerald Gemstone",
-    category: "birthstone",
-    price: 450,
-    material: "Cut Emerald Gemstone",
-    imageUrl: makeSvgBead("#006400", "#00ff7f", "", "gem"),
-    isPremium: true,
-    rotationAllowed: true,
-    size: 1.1,
-    sizeMm: 10,
-    widthMm: 10,
-    active: true,
-  },
-  {
-    id: "bead-sapphire-birthstone",
-    name: "Deep Blue Sapphire",
-    category: "birthstone",
-    price: 550,
-    material: "Natural Sapphire Gemstone",
-    imageUrl: makeSvgBead("#00008b", "#1e90ff", "", "gem"),
-    isPremium: true,
-    rotationAllowed: true,
-    size: 1.1,
-    sizeMm: 10,
-    widthMm: 10,
-    active: true,
-  },
-
-  // Premium Artisanal Charms
-  {
-    id: "bead-solstice-sun",
-    name: "Artisan Kundan Solstice Sun",
-    category: "premium-charm",
-    price: 850,
-    material: "Solid Brass & Glass Kundan",
-    imageUrl: makeSvgBead("#b8860b", "#fff8dc", "☀", "letter"),
-    isPremium: true,
-    rotationAllowed: true,
-    size: 1.3,
-    sizeMm: 12,
-    widthMm: 12,
-    active: true,
-  },
-  {
-    id: "bead-ruby-toggle",
-    name: "Handcrafted Ruby Pendant",
-    category: "premium-charm",
-    price: 1250,
-    material: "Gold Plated & Natural Ruby Stone",
-    imageUrl: makeSvgBead("#8b0000", "#ff1493", "◆", "letter"),
-    isPremium: true,
-    rotationAllowed: true,
-    size: 1.4,
-    sizeMm: 14,
-    widthMm: 14,
-    active: true,
-  },
-  {
-    id: "bead-bar-engraved",
-    name: "Custom Engraved Copper Bar",
-    category: "premium-charm",
-    price: 650,
-    material: "Hand-Beaten Recycled Copper",
-    imageUrl: makeSvgBead("#735c00", "#ffe088", "BEADU", "letter"),
-    isPremium: true,
-    rotationAllowed: true,
-    size: 1.3,
-    sizeMm: 12,
-    widthMm: 12,
-    active: true,
-  },
 ];
 
 export const PRESET_DESIGNS: PresetDesign[] = [
   {
-    id: "champagne-royalty",
-    title: "Terracotta & Pearl Harmony",
-    subtitle: "Artisan Clay & Natural Pearl",
-    price: 850,
+    id: "earth-cats-eye",
+    title: "Earth & Jade Harmony",
+    subtitle: "Jade Spheres & Rosewood",
+    price: 600,
     tag: "Most Popular",
-    description: "Alternating terracotta gold spheres with natural freshwater pearls and a central Kundan Sun centerpiece.",
+    description: "Natural green jade spheres alternating with polished Indian rosewood beads on elastic cord.",
     wristInches: 7.0,
     cordType: "elastic",
     beadIds: [
-      "bead-gold-classic",
-      "bead-freshwater-pearl",
-      "bead-gold-classic",
-      "bead-freshwater-pearl",
-      "bead-solstice-sun",
-      "bead-freshwater-pearl",
-      "bead-gold-classic",
-      "bead-freshwater-pearl",
-      "bead-gold-classic",
+      "bead-batch-a-001",
+      "bead-batch-a-006",
+      "bead-batch-a-001",
+      "bead-batch-a-006",
+      "bead-batch-a-005",
+      "bead-batch-a-006",
+      "bead-batch-a-001",
+      "bead-batch-a-006",
+      "bead-batch-a-001",
     ],
-    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
+    image: "/beads/pomelli_photoshoot_image_1_1_0726.png",
   },
   {
-    id: "midnight-onyx",
-    title: "Rosewood & Sapphire Breeze",
-    subtitle: "Indian Rosewood & Blue Gemstone",
-    price: 1200,
+    id: "ocean-blue",
+    title: "Ocean Blue & Pearl",
+    subtitle: "Hand-Blown Glass & Pearl",
+    price: 550,
     tag: "Artisan Select",
-    description: "Polished Indian rosewood beads anchored with a sapphire gem and sterling silver accents.",
+    description: "Swirling ocean blue glass with baroque freshwater pearls and an obsidian sphere.",
     wristInches: 7.5,
     cordType: "elastic",
     beadIds: [
-      "bead-obsidian",
-      "bead-silver-classic",
-      "bead-obsidian",
-      "bead-sapphire-birthstone",
-      "bead-obsidian",
-      "bead-silver-classic",
-      "bead-obsidian",
+      "bead-batch-a-010",
+      "bead-batch-a-007",
+      "bead-batch-a-010",
+      "bead-batch-a-008",
+      "bead-batch-a-010",
+      "bead-batch-a-007",
+      "bead-batch-a-010",
     ],
-    image: "https://images.unsplash.com/photo-1611591475285-a36adaf961e0?auto=format&fit=crop&w=600&q=80",
+    image: "/beads/pomelli_photoshoot_image_9_16_0726 (2).png",
   },
   {
-    id: "rose-quartz-grace",
-    title: "Rose Quartz & Ruby Grace",
-    subtitle: "Hand-Blown Glass & Ruby Pendant",
-    price: 1850,
+    id: "kundan-solstice",
+    title: "Kundan Solstice Gold",
+    subtitle: "Gold Disc & Artisan Brass",
+    price: 1000,
     tag: "High Jewelry",
-    description: "Soft pink rose quartz spheres highlighted with glass accents and an exquisite Handcrafted Ruby Pendant.",
+    description: "Gilded terracotta sun discs with a Kundan Solstice centerpiece and golden brass spacers.",
     wristInches: 7.0,
     cordType: "elastic",
     beadIds: [
-      "bead-rose-quartz",
-      "bead-rose-gold",
-      "bead-rose-quartz",
-      "bead-ruby-toggle",
-      "bead-rose-quartz",
-      "bead-rose-gold",
-      "bead-rose-quartz",
+      "bead-batch-a-013",
+      "bead-batch-a-004",
+      "bead-batch-a-013",
+      "bead-batch-a-011",
+      "bead-batch-a-013",
+      "bead-batch-a-004",
+      "bead-batch-a-013",
     ],
-    image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80",
+    image: "/beads/pomelli_photoshoot_image_9_16_0726 (5).png",
   },
   {
-    id: "monogram-solstice",
-    title: "Boho Initial Soul",
-    subtitle: "Hand-Engraved Brass & Amethyst",
-    price: 1450,
+    id: "zodiac-mandala",
+    title: "Zodiac Mandala Soul",
+    subtitle: "Carved Wood & Turquoise",
+    price: 800,
     tag: "Personalized",
-    description: "Custom engraved brass letters accompanied by a gold-leafed clay heart charm and raw amethyst gemstone.",
+    description: "Hand-carved walnut mandala discs paired with natural turquoise pebbles and amber crystals.",
     wristInches: 6.5,
     cordType: "elastic",
     beadIds: [
-      "bead-gold-classic",
-      "bead-letter-a",
-      "bead-heart-gold",
-      "bead-letter-m",
-      "bead-amethyst",
-      "bead-gold-classic",
+      "bead-batch-a-017",
+      "bead-batch-a-019",
+      "bead-batch-a-017",
+      "bead-batch-a-016",
+      "bead-batch-a-017",
+      "bead-batch-a-019",
     ],
-    image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80",
+    image: "/beads/pomelli_photoshoot_image_9_16_0726.png",
   },
 ];
-
