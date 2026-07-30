@@ -26,11 +26,11 @@ function TrayBeadItem({
       }`}
       title={isSwapMode ? `Swap with ${bead.name}` : `${bead.name} • ${bead.material}`}
     >
-      <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full transition-all group-hover:scale-105">
+      <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-muted/20 p-0.5 transition-all group-hover:scale-105">
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-cover drop-shadow-xs pointer-events-none rounded-full"
+          className="w-full h-full object-contain drop-shadow-xs pointer-events-none"
         />
       </div>
 

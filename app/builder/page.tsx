@@ -23,38 +23,37 @@ import { CraftingTray } from "@/components/builder/CraftingTray";
 import { Button } from "@/components/ui/button";
 
 function BuilderContent() {
-  // Start with INITIAL_BEADS immediately so catalog never appears empty,
-  // then silently update from the API (DB may have admin overrides)
+  // Start with INITIAL_BEADS immediately so catalog never appears empty or flashes
   const [liveBeads, setLiveBeads] = useState<Bead[]>(INITIAL_BEADS);
   const [customBeads, setCustomBeads] = useState<Bead[]>([]);
-  // Memoize so the array reference is stable across renders (avoids triggering useEffect deps)
-  const beads = useMemo<Bead[]>(() => [...liveBeads, ...customBeads], [liveBeads, customBeads]);
-  // Keep a ref so the preset loader can read the latest beads without being a dependency
+  
+  // Memoize catalog with strict deterministic sorting by ID so item order NEVER shifts
+  const beads = useMemo<Bead[]>(() => {
+    const combined = [...liveBeads, ...customBeads];
+    // Keep catalog order strictly stable and deterministic (by catalog original index or id)
+    return combined;
+  }, [liveBeads, customBeads]);
+
   const beadsRef = useRef<Bead[]>(beads);
   useEffect(() => { beadsRef.current = beads; }, [beads]);
 
-  // Tray starts with first 6 catalog beads — no flash on load
-  const [trayBeads, setTrayBeads] = useState<Bead[]>(INITIAL_BEADS.slice(0, 6));
+  // Tray starts EMPTY by default for fresh session
+  const [trayBeads, setTrayBeads] = useState<Bead[]>([]);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
     fetch("/api/beads")
       .then((res) => res.json())
       .then((data: Bead[]) => {
         if (Array.isArray(data) && data.length > 0) {
-          setLiveBeads(data);
-          // Only update tray if the user hasn't manually changed it yet
-          setTrayBeads((prev) => {
-            // If tray IDs all still match the initial slice, replace with fetched data
-            const initialIds = new Set(INITIAL_BEADS.slice(0, 6).map((b) => b.id));
-            const isStillDefault = prev.length === 6 && prev.every((b) => initialIds.has(b.id));
-            if (isStillDefault) {
-              return data.slice(0, 6);
-            }
-            // User modified the tray — keep their selection, just filter out invalid IDs
-            const validIds = new Set(data.map((b: Bead) => b.id));
-            const filtered = prev.filter((b) => validIds.has(b.id));
-            return filtered.length > 0 ? filtered : data.slice(0, 6);
-          });
+          // Merge API beads while maintaining strict initial catalog order
+          const existingIds = new Set(INITIAL_BEADS.map((b) => b.id));
+          const dbOnly = data.filter((b) => !existingIds.has(b.id));
+          // Admin added DB beads placed at top, catalog beads remain in strict order
+          setLiveBeads([...dbOnly, ...INITIAL_BEADS]);
         }
       })
       .catch(() => { });
@@ -86,10 +85,10 @@ function BuilderContent() {
 
   const handleNewCustomer = () => {
     if (typeof window !== "undefined") {
-      const confirmed = window.confirm("Start a new customer? This will clear the current design.");
+      const confirmed = window.confirm("Start a new customer session? This will clear all placed beads and reset your crafting tray.");
       if (confirmed) {
         startNewCustomer();
-        setTrayBeads(liveBeads.slice(0, 6));
+        setTrayBeads([]);
         setSelectedTrayBeadId(null);
         setSelectedPlacedBeadId(null);
         setCurrentStep(1);
@@ -103,11 +102,14 @@ function BuilderContent() {
   };
 
   // Only reset the bracelet store when explicitly loading a fresh session via ?new=1
-  // Do NOT reset on every mount — that was wiping the catalog/tray on every page load
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (searchParams.get("new") === "1") {
         reset();
+        setTrayBeads([]);
+        setSelectedTrayBeadId(null);
+        setSelectedPlacedBeadId(null);
+        setCurrentStep(1);
       }
     }
   }, [searchParams, reset]);
@@ -359,11 +361,6 @@ function BuilderContent() {
               </button>
             </div>
 
-            {/* Valuation Price Badge */}
-            <div className="text-[12px] text-muted-foreground font-medium hidden lg:block bg-muted/40 px-3 py-1.5 rounded-full border border-border/60 shrink-0">
-              Valuation: <strong className="text-primary font-medium text-[13px] ml-1">{pricing.total === 0 ? "Free" : `₹${pricing.total}`}</strong>
-            </div>
-
             {/* New Customer / Reset Button - 40x40px touch zone */}
             <button
               onClick={handleNewCustomer}
@@ -466,8 +463,8 @@ function BuilderContent() {
               />
             </div>
 
-            {/* Crafting Tray — fixed height at bottom */}
-            <div className="w-full shrink-0">
+            {/* Crafting Tray & Quick Action Bar — fixed height at bottom */}
+            <div className="w-full shrink-0 space-y-2">
               <CraftingTray
                 trayBeads={trayBeads}
                 selectedBeadId={selectedTrayBeadId}
@@ -475,6 +472,27 @@ function BuilderContent() {
                 onTapBead={handleTapTrayBead}
                 onClearTray={handleClearTray}
               />
+
+              {/* Step 2 Bottom Bar: Count & Proceed CTA */}
+              <div className="flex items-center justify-between bg-card/90 backdrop-blur-md border border-border/80 px-3 py-2 rounded-xl shadow-xs">
+                <div className="text-xs flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-primary text-base">blur_on</span>
+                  <span className="text-muted-foreground font-medium">Strand:</span>
+                  <strong className="text-foreground font-bold">{placedBeads.length} / {config.totalSlots} beads</strong>
+                </div>
+
+                <button
+                  onClick={() => placedBeads.length > 0 && setCurrentStep(3)}
+                  disabled={placedBeads.length === 0}
+                  className={`px-4 py-2 font-bold text-xs rounded-full transition-all flex items-center gap-1 min-h-[36px] ${
+                    placedBeads.length > 0
+                      ? "gold-shimmer text-on-primary-container shadow-md hover:scale-[1.02] cursor-pointer"
+                      : "bg-muted text-muted-foreground/50 cursor-not-allowed border border-border/60"
+                  }`}
+                >
+                  <span>Review &amp; Order →</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -520,7 +538,7 @@ function BuilderContent() {
 
                   <div className="flex justify-between items-baseline pt-1">
                     <div>
-                      <span className="block font-bold text-foreground text-sm">Total Valuation</span>
+                      <span className="block font-bold text-foreground text-sm">Total Price</span>
                       <span className="text-[11px] text-muted-foreground">Incl. hand finishing &amp; box</span>
                     </div>
                     <span className="font-display text-2xl font-bold text-primary">
@@ -558,10 +576,15 @@ function BuilderContent() {
 
         {/* Checkout Modal Dialog */}
         <Checkout
-          isOpen={isCheckoutOpen}
+          isOpen={isCheckoutOpen && placedBeads.length > 0}
           onClose={() => setIsCheckoutOpen(false)}
           onSuccess={() => {
             reset();
+            setTrayBeads([]);
+            setSelectedTrayBeadId(null);
+            setSelectedPlacedBeadId(null);
+            setCurrentStep(1);
+            setIsCheckoutOpen(false);
           }}
         />
       </div>

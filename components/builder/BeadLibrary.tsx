@@ -54,16 +54,16 @@ export const BeadItem = memo(function BeadItem({
         </span>
       ) : null}
 
-      <div className={`relative w-12 h-12 sm:w-16 sm:h-16 my-1 mt-3 flex items-center justify-center transition-all ${isSelected ? "scale-105" : "group-hover:scale-105"
+      <div className={`relative w-14 h-14 sm:w-20 sm:h-20 my-1 mt-2 flex items-center justify-center rounded-xl bg-muted/30 p-1.5 transition-all ${isSelected ? "scale-105 ring-2 ring-primary" : "group-hover:scale-105"
         }`}>
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-contain drop-shadow-xs pointer-events-none p-1"
+          className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-sm pointer-events-none"
         />
       </div>
 
-      <div className="w-full text-center space-y-1 mt-2">
+      <div className="w-full text-center space-y-1 mt-1.5">
         <span className="block text-xs font-semibold text-foreground truncate px-0.5" title={bead.name}>
           {bead.name}
         </span>
@@ -97,22 +97,17 @@ export function BeadLibrary({
   onRemoveFromTrayByBeadId,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [activeBeadId, setActiveBeadId] = useState<string | null>(null);
 
-  useEffect(() => {
-    beads.forEach((b: any) => {
-      const width = b.widthMm ?? b.sizeMm;
-      if (!width || isNaN(width)) {
-        console.warn('Bead missing widthMm:', b.name);
-      }
-    });
-  }, [beads]);
+  const categories = Array.from(new Set(beads.map((b) => b.category).filter(Boolean)));
 
   const filtered = beads.filter((b) => {
     const matchesSearch =
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.material.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesCategory = selectedCategory === "all" || b.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
   return (
@@ -128,18 +123,54 @@ export function BeadLibrary({
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-2.5 text-muted-foreground text-base">
-            search
-          </span>
-          <input
-            type="text"
-            placeholder="Search beads, metals, stones..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3.5 py-2.5 min-h-[44px] bg-background border border-border/80 rounded-xl text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-xs"
-          />
+        {/* Search Bar & Category Filter Pills */}
+        <div className="space-y-2">
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-3 top-2.5 text-muted-foreground text-base">
+              search
+            </span>
+            <input
+              type="text"
+              placeholder="Search beads, metals, stones..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3.5 py-2 min-h-[40px] bg-background border border-border/80 rounded-xl text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-xs"
+            />
+          </div>
+
+          {/* Category Filter Pills */}
+          {categories.length > 1 && (
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 pt-0.5">
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("all")}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold capitalize whitespace-nowrap transition-colors cursor-pointer ${
+                  selectedCategory === "all"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-muted/60 hover:bg-muted text-muted-foreground"
+                }`}
+              >
+                All ({beads.length})
+              </button>
+              {categories.map((cat) => {
+                const count = beads.filter((b) => b.category === cat).length;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold capitalize whitespace-nowrap transition-colors cursor-pointer ${
+                      selectedCategory === cat
+                        ? "bg-primary text-primary-foreground shadow-xs"
+                        : "bg-muted/60 hover:bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {cat.replace("-", " ")} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -158,12 +189,10 @@ export function BeadLibrary({
               isSelected={activeBeadId === bead.id}
               isInTray={trayBeadIds.includes(bead.id)}
               onSelectBead={(b) => {
-                if (activeBeadId === b.id || trayBeadIds.includes(b.id)) {
-                  setActiveBeadId(null);
+                if (trayBeadIds.includes(b.id)) {
                   onRemoveFromTrayByBeadId?.(b.id);
                 } else {
-                  setActiveBeadId(b.id);
-                  onSelectBead(b);
+                  onAddToTray(b);
                 }
               }}
               onAddToTray={onAddToTray}

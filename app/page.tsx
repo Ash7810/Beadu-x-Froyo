@@ -70,7 +70,8 @@ export default function Home() {
               alt="Beadu"
               width={120}
               height={48}
-              className="h-7 sm:h-8 md:h-10 object-contain"
+              style={{ width: "auto" }}
+              className="h-7 sm:h-8 md:h-10 w-auto object-contain"
             />
           </Link>
 
@@ -105,7 +106,7 @@ export default function Home() {
           <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6">
 
             <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-normal text-foreground leading-tight tracking-tight">
-              Beadu x Froyo
+              Beadu
             </h1>
 
             <p className="text-sm sm:text-lg text-muted-foreground/90 max-w-2xl mx-auto leading-relaxed font-sans">
@@ -130,7 +131,11 @@ export default function Home() {
                   src="/beads/pomelli_photoshoot-3.png"
                   alt="Handcrafted bead bracelet hero image"
                   fill
-                  className="object-cover"
+                  priority
+                  quality={100}
+                  unoptimized
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1920px"
+                  className="object-cover image-rendering-crisp"
                 />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
@@ -179,6 +184,7 @@ export default function Home() {
                     src="/beads/pomelli_photoshoot_image_9_16_0726 (4).png"
                     alt="Artisan terracotta red and orange wood bead bracelet"
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
@@ -198,6 +204,7 @@ export default function Home() {
                     src="/beads/pomelli_photoshoot_image_9_16_0726.png"
                     alt="Design custom Indian handmade bracelet"
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
@@ -217,6 +224,7 @@ export default function Home() {
                     src="/beads/pomelli_photoshoot_image_9_16_0726 (3).png"
                     alt="Hand-finished artisan bracelet on wrist"
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
@@ -258,18 +266,13 @@ export default function Home() {
                       src={item.image}
                       alt={item.title}
                       fill
+                      sizes="(max-width: 640px) 260px, 340px"
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 sm:p-6 text-white">
                     <h3 className="font-display text-xl sm:text-2xl font-light">{item.title}</h3>
                     <p className="text-xs opacity-80 mt-1 line-clamp-2">{item.description}</p>
-                    <div className="mt-3 sm:mt-4 pt-3 border-t border-white/20 flex justify-between items-center text-xs">
-                      <span className="font-medium opacity-90 truncate max-w-[160px]">{item.material}</span>
-                      <span className="font-semibold text-primary-fixed hover:underline flex items-center gap-1 shrink-0">
-                        View Details <span className="material-symbols-outlined text-sm">visibility</span>
-                      </span>
-                    </div>
                   </div>
                 </div>
               ))}
@@ -324,6 +327,7 @@ export default function Home() {
                 src="/beads/newimg.png"
                 alt="Authentic Indian handcrafted wrist jewelry photoshoot"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-primary/10 mix-blend-multiply" />
@@ -417,53 +421,50 @@ export default function Home() {
 
       {/* Showcase Detail Dialog Modal */}
       {selectedGalleryItem && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-background border border-border max-w-lg w-full rounded-2xl p-6 relative shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-card border border-border/80 max-w-lg w-full rounded-3xl p-5 sm:p-6 relative shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedGalleryItem(null)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+              className="absolute top-4 right-4 z-20 text-muted-foreground hover:text-foreground bg-background/80 hover:bg-muted w-8 h-8 rounded-full flex items-center justify-center shadow-xs transition-colors"
+              title="Close modal"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined text-lg">close</span>
             </button>
-            <div className="relative aspect-video w-full rounded-xl overflow-hidden">
+
+            {/* Showcase Header Image Frame */}
+            <div className="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden shadow-md bg-muted">
               <Image
                 src={selectedGalleryItem.image}
                 alt={selectedGalleryItem.title}
                 fill
-                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 550px"
+                className="object-cover object-center"
               />
-            </div>
-            <div>
-              <span className="text-xs uppercase font-bold tracking-widest text-primary">
-                Featured Design
-              </span>
-              <h3 className="font-display text-2xl font-semibold mt-1">{selectedGalleryItem.title}</h3>
-              <p className="text-sm text-muted-foreground mt-2">{selectedGalleryItem.description}</p>
-            </div>
-            <div className="bg-muted/40 p-4 rounded-xl flex justify-between text-xs font-medium">
-              <div>
-                <span className="text-muted-foreground block">Artisan Collection</span>
-                <span className="text-foreground font-semibold">Beadu x Froyo</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground block">Primary Material</span>
-                <span className="text-foreground font-semibold">{selectedGalleryItem.material}</span>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+              <div className="absolute bottom-3 left-4 right-4">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-white/80 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
+                  Featured Community Design
+                </span>
               </div>
             </div>
-            <div className="flex gap-3 pt-2">
+
+            <div className="space-y-1.5 pt-1">
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">{selectedGalleryItem.title}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{selectedGalleryItem.description}</p>
+            </div>
+
+            <div className="bg-muted/40 p-3.5 rounded-xl border border-border/60 flex justify-between items-center text-xs font-medium">
+              <span className="text-muted-foreground">Primary Composition:</span>
+              <strong className="text-foreground font-semibold">{selectedGalleryItem.material}</strong>
+            </div>
+
+            <div className="pt-2">
               <button
                 onClick={() => setSelectedGalleryItem(null)}
-                className="flex-1 py-2.5 rounded-full border border-border text-sm font-semibold hover:bg-muted"
+                className="w-full py-3 rounded-full bg-primary text-primary-foreground font-bold text-xs shadow-md hover:opacity-90 active:scale-98 transition-all cursor-pointer"
               >
-                Close
+                Close View
               </button>
-              <Link
-                href={`/builder?preset=${selectedGalleryItem.presetId}`}
-                className="flex-1 gold-shimmer text-on-primary-container text-center py-2.5 rounded-full text-sm font-bold shadow-md hover:scale-105 transition-all flex items-center justify-center gap-1"
-              >
-                <span>Remix Design</span>
-                <span className="material-symbols-outlined text-base">auto_awesome</span>
-              </Link>
             </div>
           </div>
         </div>

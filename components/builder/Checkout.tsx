@@ -23,6 +23,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
   const [orderId, setOrderId] = useState<string | null>(null);
 
   if (!isOpen) return null;
+  if (!placedBeads || placedBeads.length === 0) return null;
 
   const handleReturnHome = () => {
     reset();
@@ -32,6 +33,11 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!placedBeads || placedBeads.length === 0) {
+      alert("Your bracelet strand is empty. Please add at least 1 bead before checking out.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -44,6 +50,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
           email: customerEmail,
           phone: customerPhone,
           wristInches: config.wristInches,
+          cordType: config.cordType || "elastic",
           address,
           totalPrice: 0, // Event complimentary checkout
           calculatedValuation: pricing.total,
@@ -70,17 +77,18 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-background border border-border max-w-lg w-full rounded-2xl p-6 relative shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto no-scrollbar">
+      <div className="bg-background border border-border max-w-lg w-full rounded-2xl p-4 sm:p-6 relative shadow-2xl space-y-3.5 my-auto max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 overflow-hidden">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-muted-foreground hover:text-foreground z-10 w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+          title="Close Modal"
         >
-          <span className="material-symbols-outlined">close</span>
+          <span className="material-symbols-outlined text-xl">close</span>
         </button>
 
         {completed ? (
-          <div className="text-center py-6 space-y-4">
+          <div className="text-center py-5 space-y-4 my-auto px-1">
             <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-3xl">
               ✓
             </div>
@@ -93,19 +101,19 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
               </div>
             )}
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Thank you, {customerName || "valued customer"}. Your custom {config.wristInches}" bracelet ({placedBeads.length} beads) is queued for hand-finishing by our jewelers. A confirmation email has been dispatched to {customerEmail}.
+              Thank you, <strong className="text-foreground">{customerName || "valued customer"}</strong>. Your custom {config.wristInches}" bracelet ({placedBeads.length} beads) is queued for hand-finishing by our jewelers. A confirmation email has been dispatched to <strong className="text-foreground">{customerEmail}</strong>.
             </p>
             <div className="pt-2">
-              <Button onClick={handleReturnHome} className="w-full gold-shimmer text-on-primary-container font-bold py-3 rounded-full text-sm">
+              <Button onClick={handleReturnHome} className="w-full gold-shimmer text-on-primary-container font-bold py-3 rounded-full text-sm shadow-md">
                 Done & Return Home →
               </Button>
             </div>
           </div>
         ) : (
-          <>
+          <div className="overflow-y-auto overflow-x-hidden no-scrollbar px-0.5 sm:px-1 space-y-3.5 flex-1">
             <div>
               <span className="text-xs uppercase font-bold tracking-widest text-primary">Checkout</span>
-              <h3 className="font-display text-2xl font-semibold text-foreground">
+              <h3 className="font-display text-xl sm:text-2xl font-semibold text-foreground">
                 Finalize Your Custom Bracelet
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -127,7 +135,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
                 <span className="block text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
                   Beads Used Summary:
                 </span>
-                <div className="max-h-36 overflow-y-auto pr-1 space-y-1.5 divide-y divide-border/30">
+                <div className="max-h-32 overflow-y-auto pr-1 space-y-1.5 divide-y divide-border/30">
                   {Object.entries(
                     placedBeads.reduce((acc, bead) => {
                       const name = bead.name || bead.id;
@@ -139,17 +147,17 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
                     }, {} as Record<string, { count: number; imageUrl: string; price: number }>)
                   ).map(([name, item]) => (
                     <div key={name} className="pt-1.5 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         {item.imageUrl ? (
                           <img
                             src={item.imageUrl}
                             alt={name}
-                            className="w-5 h-5 rounded-full object-cover border border-primary/30 shrink-0"
+                            className="w-6 h-6 rounded-md object-contain bg-muted/20 border border-primary/30 p-0.5 shrink-0"
                           />
                         ) : (
                           <div className="w-5 h-5 rounded-full bg-primary/20 shrink-0" />
                         )}
-                        <span className="font-medium text-foreground">{name}</span>
+                        <span className="font-medium text-foreground truncate">{name}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="font-bold text-primary bg-background px-2 py-0.5 rounded border border-border">
@@ -193,62 +201,68 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
             {/* Customer Details Form */}
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-muted-foreground font-medium mb-1">Full Name</label>
+                <label className="block text-muted-foreground font-medium mb-1">Full Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Elena Rostova"
+                  placeholder=""
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground min-h-[38px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-muted-foreground font-medium mb-1">Email Address</label>
+                  <label className="block text-muted-foreground font-medium mb-1">Email Address *</label>
                   <input
                     type="email"
                     required
-                    placeholder="elena@example.com"
+                    placeholder=""
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground min-h-[38px]"
                   />
                 </div>
                 <div>
-                  <label className="block text-muted-foreground font-medium mb-1">Phone Number</label>
+                  <label className="block text-muted-foreground font-medium mb-1">Phone Number *</label>
                   <input
                     type="tel"
                     required
-                    placeholder="+1 (555) 000-1234"
+                    pattern="^[0-9+\-\s()]{7,15}$"
+                    title="Please enter a valid phone number (7 to 15 digits)"
+                    placeholder=""
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground min-h-[38px]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-muted-foreground font-medium mb-1">Delivery Shipping Address</label>
+                <label className="block text-muted-foreground font-medium mb-1">Delivery Shipping Address *</label>
                 <textarea
                   required
                   rows={2}
-                  placeholder="123 Artisan Lane, Suite 400, San Francisco, CA"
+                  placeholder=""
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground resize-none"
                 />
               </div>
 
-              <div className="pt-2 flex gap-2">
-                <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              <div className="pt-3 pb-1 sticky bottom-0 bg-background/95 backdrop-blur-md flex gap-2 border-t border-border/40 -mx-1 px-1">
+                <Button type="button" variant="outline" onClick={onClose} className="flex-1 rounded-full text-xs py-2.5 min-h-[40px]">
                   Cancel
                 </Button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 gold-shimmer text-on-primary-container font-bold py-2.5 rounded-full text-xs shadow-md hover:scale-[1.02] active:scale-98 transition-all"
+                  disabled={submitting || placedBeads.length === 0}
+                  className={`flex-1 font-bold py-2.5 rounded-full text-xs shadow-md transition-all min-h-[40px] ${
+                    submitting || placedBeads.length === 0
+                      ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
+                      : "gold-shimmer text-on-primary-container hover:scale-[1.02] active:scale-98 cursor-pointer"
+                  }`}
                 >
                   {submitting
                     ? "Processing Order..."
@@ -256,7 +270,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
                 </button>
               </div>
             </form>
-          </>
+          </div>
         )}
       </div>
     </div>

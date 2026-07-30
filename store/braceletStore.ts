@@ -220,12 +220,13 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
         fittingBeads.push(bead);
       }
     }
-    filteredBeads = fittingBeads;
+    // Re-index remaining beads so slotIndices are contiguous and strictly within 0..totalSlots-1
+    const reindexedBeads = fittingBeads.map((b, idx) => ({ ...b, slotIndex: idx }));
     set({
       config: newConfig,
-      placedBeads: filteredBeads,
+      placedBeads: reindexedBeads,
       wristSizeMm: Math.round(spec.wristInches * 25.4),
-      pricing: calculateTotal(filteredBeads, newConfig),
+      pricing: calculateTotal(reindexedBeads, newConfig),
     });
   },
 
