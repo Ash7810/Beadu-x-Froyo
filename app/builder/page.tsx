@@ -49,11 +49,20 @@ function BuilderContent() {
       .then((res) => res.json())
       .then((data: Bead[]) => {
         if (Array.isArray(data) && data.length > 0) {
-          // Merge API beads while maintaining strict initial catalog order
-          const existingIds = new Set(INITIAL_BEADS.map((b) => b.id));
-          const dbOnly = data.filter((b) => !existingIds.has(b.id));
-          // Admin added DB beads placed at top, catalog beads remain in strict order
-          setLiveBeads([...dbOnly, ...INITIAL_BEADS]);
+          // Build map of DB beads by ID
+          const dbMap = new Map<string, Bead>(data.map((b) => [b.id, b]));
+
+          // Update initial beads with any admin DB edits (size, sizeMm, widthMm, price, etc.)
+          const updatedCatalog = INITIAL_BEADS.map((catalogBead) => {
+            const dbBead = dbMap.get(catalogBead.id);
+            return dbBead ? { ...catalogBead, ...dbBead } : catalogBead;
+          });
+
+          // Also include any new DB-only beads added via admin
+          const catalogIds = new Set(INITIAL_BEADS.map((b) => b.id));
+          const dbOnly = data.filter((b) => !catalogIds.has(b.id));
+
+          setLiveBeads([...dbOnly, ...updatedCatalog]);
         }
       })
       .catch(() => { });
@@ -63,7 +72,13 @@ function BuilderContent() {
   const [selectedTrayBeadId, setSelectedTrayBeadId] = useState<string | null>(null);
   const [selectedPlacedBeadId, setSelectedPlacedBeadId] = useState<string | null>(null);
 
-  const { addBead, swapBead, swapPlacedBeads, removeBead, placedBeads, config, pricing, reset, loadDesign, setWristInches, startNewCustomer, clearError } = useBraceletStore();
+  const { addBead, swapBead, swapPlacedBeads, removeBead, placedBeads, config, pricing, reset, loadDesign, setWristInches, startNewCustomer, clearError, syncBeadsWithCatalog } = useBraceletStore();
+
+  useEffect(() => {
+    if (beads.length > 0) {
+      syncBeadsWithCatalog(beads);
+    }
+  }, [beads, syncBeadsWithCatalog]);
   const searchParams = useSearchParams();
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);

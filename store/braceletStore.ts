@@ -28,6 +28,7 @@ type BraceletState = {
   redo: () => void;
   reset: () => void;
   loadDesign: (beads: PlacedBead[], config?: Partial<BraceletConfig>) => void;
+  syncBeadsWithCatalog: (masterBeads: Bead[]) => void;
 };
 
 const DEFAULT_SPEC = getStrandSpecFromWrist(7.0);
@@ -319,6 +320,50 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
       historyIndex: 0,
       pricing: calculateTotal(beads, config),
     });
+  },
+
+  syncBeadsWithCatalog: (masterBeads) => {
+    const state = get();
+    if (!state.placedBeads.length || !masterBeads.length) return;
+
+    const masterMap = new Map<string, Bead>(masterBeads.map((b) => [b.id, b]));
+    let changed = false;
+
+    const updatedPlacedBeads = state.placedBeads.map((placed) => {
+      const master = masterMap.get(placed.id);
+      if (!master) return placed;
+
+      const sizeMm = master.sizeMm || master.widthMm || 8;
+      const widthMm = master.widthMm || master.sizeMm || 8;
+      const relativeSize = master.size || Number((widthMm / 8).toFixed(2));
+
+      if (
+        placed.sizeMm !== sizeMm ||
+        placed.widthMm !== widthMm ||
+        placed.size !== relativeSize ||
+        placed.price !== master.price
+      ) {
+        changed = true;
+        return {
+          ...placed,
+          name: master.name,
+          price: master.price,
+          material: master.material,
+          imageUrl: master.imageUrl,
+          size: relativeSize,
+          sizeMm,
+          widthMm,
+        };
+      }
+      return placed;
+    });
+
+    if (changed) {
+      set({
+        placedBeads: updatedPlacedBeads,
+        pricing: calculateTotal(updatedPlacedBeads, state.config),
+      });
+    }
   },
 }));
 
