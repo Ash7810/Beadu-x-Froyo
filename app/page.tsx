@@ -7,16 +7,6 @@ import { INITIAL_BEADS } from "@/lib/catalog";
 import { Bead } from "@/lib/types";
 
 export default function Home() {
-  const [selectedGalleryItem, setSelectedGalleryItem] = useState<{
-    presetId: string;
-    title: string;
-    designer: string;
-    image: string;
-    description: string;
-    beadsCount: number;
-    material: string;
-  } | null>(null);
-
   const [activeMiniBead, setActiveMiniBead] = useState<number>(0);
   const miniBeadList = INITIAL_BEADS.slice(0, 7);
 
@@ -258,8 +248,7 @@ export default function Home() {
               {galleryItems.map((item, index) => (
                 <div
                   key={index}
-                  onClick={() => setSelectedGalleryItem(item)}
-                  className="min-w-[260px] sm:min-w-[340px] h-[360px] sm:h-[440px] rounded-2xl overflow-hidden relative group cursor-pointer border border-border shadow-md hover:shadow-2xl transition-all duration-500 snap-start"
+                  className="min-w-[260px] sm:min-w-[340px] h-[360px] sm:h-[440px] rounded-2xl overflow-hidden relative group border border-border shadow-md hover:shadow-xl transition-all duration-500 snap-start"
                 >
                   <div className="relative w-full h-full">
                     <Image
@@ -267,7 +256,7 @@ export default function Home() {
                       alt={item.title}
                       fill
                       sizes="(max-width: 640px) 260px, 340px"
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 sm:p-6 text-white">
@@ -418,57 +407,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      {/* Showcase Detail Dialog Modal */}
-      {selectedGalleryItem && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-card border border-border/80 max-w-lg w-full rounded-3xl p-5 sm:p-6 relative shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setSelectedGalleryItem(null)}
-              className="absolute top-4 right-4 z-20 text-muted-foreground hover:text-foreground bg-background/80 hover:bg-muted w-8 h-8 rounded-full flex items-center justify-center shadow-xs transition-colors"
-              title="Close modal"
-            >
-              <span className="material-symbols-outlined text-lg">close</span>
-            </button>
-
-            {/* Showcase Header Image Frame */}
-            <div className="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden shadow-md bg-muted">
-              <Image
-                src={selectedGalleryItem.image}
-                alt={selectedGalleryItem.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 550px"
-                className="object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
-              <div className="absolute bottom-3 left-4 right-4">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-white/80 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
-                  Featured Community Design
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-1.5 pt-1">
-              <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">{selectedGalleryItem.title}</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{selectedGalleryItem.description}</p>
-            </div>
-
-            <div className="bg-muted/40 p-3.5 rounded-xl border border-border/60 flex justify-between items-center text-xs font-medium">
-              <span className="text-muted-foreground">Primary Composition:</span>
-              <strong className="text-foreground font-semibold">{selectedGalleryItem.material}</strong>
-            </div>
-
-            <div className="pt-2">
-              <button
-                onClick={() => setSelectedGalleryItem(null)}
-                className="w-full py-3 rounded-full bg-primary text-primary-foreground font-bold text-xs shadow-md hover:opacity-90 active:scale-98 transition-all cursor-pointer"
-              >
-                Close View
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
