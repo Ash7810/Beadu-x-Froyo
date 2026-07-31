@@ -15,9 +15,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
   const router = useRouter();
   const { placedBeads, pricing, config, reset } = useBraceletStore();
   const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [address, setAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -47,11 +45,11 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
         body: JSON.stringify({
           placedBeads,
           customerName,
-          email: customerEmail,
-          phone: customerPhone,
+          email: "",
+          phone: customerPhone ? `+91 ${customerPhone}` : "",
           wristInches: config.wristInches,
           cordType: config.cordType || "elastic",
-          address,
+          address: "",
           totalPrice: 0, // Event complimentary checkout
           calculatedValuation: pricing.total,
         }),
@@ -101,7 +99,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
               </div>
             )}
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Thank you, <strong className="text-foreground">{customerName || "valued customer"}</strong>. Your custom {config.wristInches}" bracelet ({placedBeads.length} beads) is queued for hand-finishing by our jewelers. A confirmation email has been dispatched to <strong className="text-foreground">{customerEmail}</strong>.
+              Thank you, <strong className="text-foreground">{customerName || "valued customer"}</strong>. Your custom {config.wristInches}" bracelet ({placedBeads.length} beads) is queued for hand-finishing by our jewelers.
             </p>
             <div className="pt-2">
               <Button onClick={handleReturnHome} className="w-full gold-shimmer text-on-primary-container font-bold py-3 rounded-full text-sm shadow-md">
@@ -117,7 +115,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
                 Finalize Your Custom Bracelet
               </h3>
               <p className="text-xs text-muted-foreground">
-                Review design summary and enter delivery instructions.
+                Review design summary and enter customer details.
               </p>
             </div>
 
@@ -212,43 +210,24 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label className="block text-muted-foreground font-medium mb-1">Email Address *</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder=""
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground min-h-[38px]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-muted-foreground font-medium mb-1">Phone Number *</label>
+              <div>
+                <label className="block text-muted-foreground font-medium mb-1">Phone Number *</label>
+                <div className="flex items-center rounded-lg border border-border bg-background overflow-hidden focus-within:ring-1 focus-within:ring-primary">
+                  <span className="px-3 py-2 bg-muted/60 text-muted-foreground font-semibold text-xs border-r border-border shrink-0 select-none">
+                    +91
+                  </span>
                   <input
                     type="tel"
                     required
-                    pattern="^[0-9+\-\s()]{7,15}$"
-                    title="Please enter a valid phone number (7 to 15 digits)"
-                    placeholder=""
+                    maxLength={10}
+                    pattern="^[0-9]{10}$"
+                    title="Please enter a valid 10-digit Indian phone number"
+                    placeholder="9876543210"
                     value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground min-h-[38px]"
+                    onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    className="w-full px-3 py-2 bg-transparent focus:outline-none text-foreground min-h-[38px]"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-muted-foreground font-medium mb-1">Delivery Shipping Address *</label>
-                <textarea
-                  required
-                  rows={2}
-                  placeholder=""
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-foreground resize-none"
-                />
               </div>
 
               <div className="pt-3 pb-1 sticky bottom-0 bg-background/95 backdrop-blur-md flex gap-2 border-t border-border/40 -mx-1 px-1">

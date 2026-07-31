@@ -113,9 +113,10 @@ function EditOrderForm({ order }: { order: Order }) {
           className="space-y-2.5 text-xs"
         >
           <div>
-            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Customer Name</label>
+            <label className="block text-[11px] text-muted-foreground font-medium mb-0.5">Full Name</label>
             <input
               name="customer_name"
+              placeholder="Enter full name"
               defaultValue={order.customer_name || ""}
               className="w-full px-3 py-1.5 bg-background border border-border/80 rounded-lg text-xs"
             />
@@ -223,7 +224,8 @@ function StatusSelector({ id, current }: { id: string; current: string }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+import { OrdersDashboardClient } from "./OrdersDashboardClient";
+
 export default async function AdminOrdersPage() {
   const orders = await fetchOrders();
 
@@ -250,7 +252,7 @@ export default async function AdminOrdersPage() {
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Order Fulfillment Center</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Review custom customer designs, track shipping status, and update customer addresses.
+              Review custom customer designs, track shipping status, and update customer details.
             </p>
           </div>
         </div>
@@ -295,33 +297,8 @@ export default async function AdminOrdersPage() {
         ))}
       </div>
 
-      {/* Orders Modern Grid Section */}
-      {orders.length === 0 ? (
-        <div className="bg-card border border-border/80 rounded-2xl p-16 text-center shadow-xs space-y-2">
-          <span className="material-symbols-outlined text-5xl text-muted-foreground/40">inventory_2</span>
-          <p className="text-foreground font-bold text-sm">No Customer Orders Yet</p>
-          <p className="text-xs text-muted-foreground">
-            Custom bracelet orders submitted through the builder will appear here immediately.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-base">orders</span>
-              Customer Orders Catalog
-            </h2>
-            <span className="text-xs text-muted-foreground font-medium">{orders.length} Live Records</span>
-          </div>
-
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {orders.map((order, idx) => (
-              <OrderCardClient key={order.id} order={order} index={idx + 1} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Interactive Orders Dashboard Component */}
+      <OrdersDashboardClient orders={orders} />
     </div>
   );
 }

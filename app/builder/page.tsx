@@ -345,12 +345,21 @@ function BuilderContent() {
               <span className="text-muted-foreground/40 text-[10px] font-bold">›</span>
 
               <button
-                onClick={() => setCurrentStep(2)}
+                onClick={() => {
+                  if (trayBeads.length === 0) {
+                    alert("Please collect at least 1 bead into your Crafting Tray before proceeding to step 2.");
+                    return;
+                  }
+                  setCurrentStep(2);
+                }}
+                disabled={trayBeads.length === 0 && currentStep === 1}
                 className={`px-2 py-1 rounded-full transition-all flex items-center gap-1 min-h-[36px] ${currentStep === 2
                     ? "bg-primary text-primary-foreground shadow-xs font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                    : trayBeads.length === 0
+                      ? "text-muted-foreground/40 cursor-not-allowed"
+                      : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                   }`}
-                title="Step 2: Design Strand"
+                title={trayBeads.length === 0 ? "Collect at least 1 bead to unlock Step 2." : "Step 2: Design Strand"}
               >
                 <span className={`w-5 h-5 rounded-full text-[11px] font-medium flex items-center justify-center ${currentStep === 2 ? "bg-white/20 text-white" : "bg-muted-foreground/20 text-muted-foreground"
                   }`}>2</span>
@@ -400,8 +409,20 @@ function BuilderContent() {
               </button>
             ) : currentStep === 1 ? (
               <button
-                onClick={() => setCurrentStep(2)}
-                className="gold-shimmer text-on-primary-container px-3.5 py-2 sm:px-4 sm:py-2 font-medium text-[13px] rounded-full shadow-md hover:scale-105 transition-all shrink-0 whitespace-nowrap min-h-[40px] flex items-center"
+                onClick={() => {
+                  if (trayBeads.length === 0) {
+                    alert("Please collect at least 1 bead into your Crafting Tray before proceeding to step 2.");
+                    return;
+                  }
+                  setCurrentStep(2);
+                }}
+                disabled={trayBeads.length === 0}
+                className={`px-3.5 py-2 sm:px-4 sm:py-2 font-medium text-[13px] rounded-full shadow-md transition-all shrink-0 whitespace-nowrap min-h-[40px] flex items-center ${
+                  trayBeads.length === 0
+                    ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
+                    : "gold-shimmer text-on-primary-container hover:scale-105"
+                }`}
+                title={trayBeads.length === 0 ? "Collect at least 1 bead to unlock Step 2." : "Proceed to Step 2"}
               >
                 <span>Design</span>
                 <span className="hidden xs:inline ml-1">→</span>
@@ -452,8 +473,20 @@ function BuilderContent() {
                 </div>
 
                 <button
-                  onClick={() => setCurrentStep(2)}
-                  className="px-5 py-2.5 gold-shimmer text-on-primary-container font-bold text-xs rounded-full shadow-md hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-1 shrink-0 min-h-[40px] cursor-pointer"
+                  onClick={() => {
+                    if (trayBeads.length === 0) {
+                      alert("Please collect at least 1 bead into your Crafting Tray before proceeding to step 2.");
+                      return;
+                    }
+                    setCurrentStep(2);
+                  }}
+                  disabled={trayBeads.length === 0}
+                  className={`px-5 py-2.5 font-bold text-xs rounded-full shadow-md transition-all flex items-center justify-center gap-1 shrink-0 min-h-[40px] ${
+                    trayBeads.length === 0
+                      ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
+                      : "gold-shimmer text-on-primary-container hover:scale-[1.02] active:scale-98 cursor-pointer"
+                  }`}
+                  title={trayBeads.length === 0 ? "Collect at least 1 bead to unlock Step 2." : "Start Designing"}
                 >
                   <span>Start Designing →</span>
                 </button>

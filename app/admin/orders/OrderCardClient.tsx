@@ -62,34 +62,47 @@ export function OrderCardClient({ order, index }: { order: Order; index: number 
   }, {} as Record<string, { count: number; imageUrl: string; material?: string }>);
 
   return (
-    <div className="bg-card border border-border/80 rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between">
-      {/* Top Header Row — Sequential Order # & Primary Info */}
+    <div className="bg-card border border-border/80 rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col h-fit">
+      {/* Top Main Row — Always Visible Header & Info */}
       <div 
         onClick={() => setIsExpanded(!isExpanded)}
-        className="p-4 bg-muted/30 border-b border-border/60 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/50 transition-colors select-none"
+        className="p-4 bg-card hover:bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer transition-colors select-none"
       >
-        <div className="flex items-center gap-3">
-          <span className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <span className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
             #{index}
           </span>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-foreground text-sm">
                 {order.customer_name || "Guest Customer"}
               </h3>
-              <span className="font-mono text-[11px] text-muted-foreground">
-                ({order.id.slice(0, 8).toUpperCase()})
+              <span className="font-mono text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border/50">
+                {order.id.slice(0, 8).toUpperCase()}
               </span>
+              {order.total_price > 0 ? (
+                <strong className="font-bold text-foreground text-xs">{formatPrice(order.total_price)}</strong>
+              ) : (
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[10px]">
+                  FREE (Complimentary)
+                </span>
+              )}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2">
+            <p className="text-[12px] text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
               <span>{formatDate(order.created_at)}</span>
               <span>•</span>
-              <strong className="text-foreground font-semibold">{placedArray.length} Beads ({order.wrist_inches}&quot; Fit)</strong>
+              <strong className="text-foreground font-medium">{placedArray.length} Beads ({order.wrist_inches}&quot; Fit)</strong>
+              {order.phone && (
+                <>
+                  <span>•</span>
+                  <span>📞 {order.phone}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
           {/* Status Dropdown Pill */}
           <form
             action={async (formData: FormData) => {
@@ -103,7 +116,7 @@ export function OrderCardClient({ order, index }: { order: Order; index: number 
               name="status"
               defaultValue={order.status}
               onChange={(e) => e.target.form?.requestSubmit()}
-              className={`text-xs font-bold px-3 py-1 rounded-full border focus:outline-none cursor-pointer ${statusStyle.color}`}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full border focus:outline-none cursor-pointer ${statusStyle.color}`}
             >
               {ALL_STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -113,160 +126,141 @@ export function OrderCardClient({ order, index }: { order: Order; index: number 
             </select>
           </form>
 
-          {/* Expand/Collapse Chevron Button */}
+          {/* Expand/Collapse Button */}
           <button 
-            className="w-8 h-8 rounded-full hover:bg-muted text-muted-foreground flex items-center justify-center transition-transform"
+            type="button"
+            className="px-3 py-1.5 rounded-full bg-muted/60 hover:bg-muted text-foreground text-xs font-semibold flex items-center gap-1 transition-colors"
             aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
           >
-            <span className={`material-symbols-outlined text-lg transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+            <span>{isExpanded ? "Hide" : "Details"}</span>
+            <span className={`material-symbols-outlined text-base transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
               expand_more
             </span>
           </button>
         </div>
       </div>
 
-      {/* Primary Summary Bar (Always Visible) */}
-      <div className="px-5 py-3 bg-background border-b border-border/40 flex items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-3 truncate">
-          <div className="flex items-center gap-1.5 shrink-0">
-            {order.total_price > 0 ? (
-              <strong className="font-bold text-foreground">{formatPrice(order.total_price)}</strong>
-            ) : (
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px]">
-                FREE (Complimentary)
-              </span>
-            )}
-          </div>
-          {order.phone && <span className="text-muted-foreground truncate hidden xs:inline">📞 {order.phone}</span>}
-        </div>
-
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-xs font-bold text-primary hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
-        >
-          <span>{isExpanded ? "Hide Details" : "View Full Order & Render"}</span>
-          <span className={`material-symbols-outlined text-sm transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
-            arrow_drop_down
-          </span>
-        </button>
-      </div>
-
       {/* Collapsible Expanded Details Section */}
       {isExpanded && (
-        <div className="p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Customer & Shipping Row */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-border/40">
-            <div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                {order.email && <span className="flex items-center gap-1">✉ {order.email}</span>}
-                {order.phone && <span className="flex items-center gap-1">📞 {order.phone}</span>}
+        <div className="p-4 sm:p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200 border-t border-border/60 bg-muted/10">
+          {/* Customer Info & Specs Bar */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-border/40 text-xs">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
+                {order.email && <span className="flex items-center gap-1 font-medium">✉ {order.email}</span>}
+                {order.phone && <span className="flex items-center gap-1 font-medium">📞 {order.phone}</span>}
               </div>
               {order.address && (
-                <p className="text-xs text-muted-foreground/90 mt-1 flex items-start gap-1 font-sans">
+                <p className="text-muted-foreground/90 flex items-start gap-1 font-sans">
                   <span className="shrink-0">📍</span>
                   <span>{order.address}</span>
                 </p>
               )}
             </div>
 
-            {/* Fit & Specs Badge */}
-            <div className="shrink-0 text-left sm:text-right bg-muted/40 p-2.5 rounded-xl border border-border/70 text-xs">
-              <span className="font-bold text-foreground block">{order.wrist_inches}&quot; Wrist Fit</span>
-              <span className="text-[11px] text-muted-foreground capitalize">
-                {order.cord_type?.replace("_", " ")} cord
-              </span>
+            {/* Fit Specs Pill */}
+            <div className="shrink-0 bg-background/80 px-3 py-1.5 rounded-xl border border-border/70 text-xs flex items-center gap-2">
+              <span className="font-bold text-foreground">{order.wrist_inches}&quot; Wrist Fit</span>
+              <span className="text-muted-foreground font-mono">•</span>
+              <span className="text-muted-foreground capitalize">{order.cord_type?.replace("_", " ")} cord</span>
             </div>
           </div>
 
-          {/* Visual Preview Strand / Closed-Loop Assembly */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs text-primary">palette</span>
-                Bracelet Assembly Render ({placedArray.length} Beads)
-              </span>
-              <button
+          {/* Laptop 2-Column Grid: Preview Canvas (Left) & Recipe (Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            {/* Visual Preview Canvas Column */}
+            <div className="lg:col-span-7 flex flex-col justify-between space-y-2 bg-background p-3 rounded-2xl border border-border/80 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <span className="material-symbols-outlined text-xs text-primary">palette</span>
+                  Bracelet Assembly Render ({placedArray.length} Beads)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewOpen(true)}
+                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-xs">zoom_in</span>
+                  Enlarge
+                </button>
+              </div>
+
+              <div
                 onClick={() => setIsPreviewOpen(true)}
-                className="text-[11px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
+                className="w-full h-44 sm:h-48 rounded-xl bg-card border border-border/60 p-2 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors shadow-inner overflow-hidden my-auto"
               >
-                <span className="material-symbols-outlined text-xs">zoom_in</span>
-                Enlarge Preview
-              </button>
+                {placedArray.length > 0 ? (
+                  <BraceletCanvas key={`order-card-canvas-${order.id}`} compact={true} readOnly={true} defaultViewMode="preview" customPlacedBeads={placedArray} />
+                ) : (
+                  <span className="text-xs text-muted-foreground py-1">No beads placed</span>
+                )}
+              </div>
             </div>
 
-            {/* Rendered Closed-Loop Bracelet Canvas */}
-            <div
-              onClick={() => setIsPreviewOpen(true)}
-              className="w-full h-48 sm:h-52 rounded-xl bg-background border border-border/80 p-2 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors shadow-inner overflow-hidden"
-            >
-              {placedArray.length > 0 ? (
-                <BraceletCanvas compact={true} readOnly={true} defaultViewMode="preview" customPlacedBeads={placedArray} />
+            {/* Jeweler Crafting Recipe Column */}
+            <div className="lg:col-span-5 flex flex-col justify-between bg-background p-3 rounded-2xl border border-border/80 shadow-2xs space-y-2">
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Jeweler Crafting Recipe ({Object.keys(beadCounts).length} Types):
+              </span>
+              
+              {Object.keys(beadCounts).length > 0 ? (
+                <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 divide-y divide-border/30 flex-1">
+                  {Object.entries(beadCounts).map(([name, item]) => (
+                    <div
+                      key={name}
+                      className="pt-1.5 flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-2 truncate pr-1">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={name}
+                            className="w-5 h-5 rounded-full object-cover border border-primary/30 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-primary/20 shrink-0" />
+                        )}
+                        <span className="font-medium text-foreground truncate">{name}</span>
+                      </div>
+                      <span className="font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 shrink-0">
+                        x{item.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <span className="text-xs text-muted-foreground py-1">No beads placed</span>
+                <p className="text-xs text-muted-foreground">No bead breakdown available.</p>
               )}
             </div>
           </div>
 
-        {/* Jeweler Bead Count Recipe */}
-        {Object.keys(beadCounts).length > 0 && (
-          <div className="bg-muted/40 p-3 rounded-xl border border-border/60 space-y-1.5 text-xs">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Jeweler Crafting Recipe (Quantities to use):
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
-              {Object.entries(beadCounts).map(([name, item]) => (
-                <div
-                  key={name}
-                  className="flex items-center justify-between bg-card px-2.5 py-1.5 rounded-lg border border-border/60 text-xs"
-                >
-                  <div className="flex items-center gap-2 truncate pr-1">
-                    {item.imageUrl ? (
-                      <img
-                        src={item.imageUrl}
-                        alt={name}
-                        className="w-5 h-5 rounded-full object-cover border border-primary/30 shrink-0"
-                      />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-primary/20 shrink-0" />
-                    )}
-                    <span className="font-medium text-foreground truncate">{name}</span>
-                  </div>
-                  <span className="font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 shrink-0">
-                    x{item.count}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Card Footer Actions inside drawer */}
-        <div className="pt-2 border-t border-border/60 flex items-center justify-end gap-2">
-          <button
-            onClick={() => setIsEditOpen(true)}
-            className="px-3.5 py-1.5 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-sm">edit</span>
-            Edit Details
-          </button>
-
-          <form
-            action={async () => {
-              if (confirm("Delete this customer order permanently?")) {
-                await deleteOrder(order.id);
-              }
-            }}
-          >
+          {/* Card Footer Actions inside drawer */}
+          <div className="pt-2 border-t border-border/60 flex items-center justify-end gap-2">
             <button
-              type="submit"
-              className="px-3 py-1.5 text-xs font-semibold text-destructive border border-destructive/30 hover:bg-destructive/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
+              onClick={() => setIsEditOpen(true)}
+              className="px-3.5 py-1.5 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-sm">delete</span>
-              Delete
+              <span className="material-symbols-outlined text-sm">edit</span>
+              Edit Order
             </button>
-          </form>
+
+            <form
+              action={async () => {
+                if (confirm("Delete this customer order permanently?")) {
+                  await deleteOrder(order.id);
+                }
+              }}
+            >
+              <button
+                type="submit"
+                className="px-3 py-1.5 text-xs font-semibold text-destructive border border-destructive/30 hover:bg-destructive/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">delete</span>
+                Delete
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Full Design Preview Modal */}
@@ -304,7 +298,7 @@ export function OrderCardClient({ order, index }: { order: Order; index: number 
             ) : (
               <div className="p-4 bg-muted/20 rounded-xl border border-border/80 flex flex-col items-center justify-center space-y-2">
                 <div className="w-full h-[220px] sm:h-[260px] flex items-center justify-center">
-                  <BraceletCanvas compact={true} readOnly={true} defaultViewMode="preview" customPlacedBeads={placedArray} />
+                  <BraceletCanvas key={`order-modal-canvas-${order.id}`} compact={true} readOnly={true} defaultViewMode="preview" customPlacedBeads={placedArray} />
                 </div>
                 <span className="text-[11px] text-muted-foreground font-semibold">
                   360° Closed-Loop Artisan Bracelet Assembly ({placedArray.length} Beads)
@@ -350,11 +344,12 @@ export function OrderCardClient({ order, index }: { order: Order; index: number 
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="block text-muted-foreground font-medium mb-1">Customer Name</label>
+                <label className="block text-muted-foreground font-medium mb-1">Full Name</label>
                 <input
                   name="customer_name"
+                  placeholder="Enter full name"
                   defaultValue={order.customer_name || ""}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-xs"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
