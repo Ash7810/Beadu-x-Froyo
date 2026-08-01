@@ -305,9 +305,11 @@ function PlacedBeadItem({
   };
 
   const beadWidthMm = placed.widthMm || placed.sizeMm || (placed.size ? Math.round(placed.size * 8) : 8);
-  const scaleFactor = beadWidthMm / 8;
-  // 1.235x compensates for PNG transparent margins (1.3 reduced by 5% only in preview mode)
-  const imageComp = viewMode === "preview" ? 1.235 : 1.3;
+  // Sub-linear scaling (power 0.72) prevents large mm beads (14mm-17mm) from becoming unnaturally oversized
+  const rawScale = beadWidthMm / 8;
+  const scaleFactor = Math.pow(rawScale, 0.72);
+  // Compensation factor for 500x500 square padding
+  const imageComp = viewMode === "preview" ? 1.08 : 1.12;
   const beadSize = baseBeadSize * scaleFactor * imageComp;
   const rotationAngle = (pos.angle || 0) + (placed.rotation || 0);
 
@@ -459,8 +461,8 @@ export function BraceletCanvas({
   // Preview: fill 101% of each slot so ~0.15 cord sliver is visible (5% more gap than previous 1.07)
   // Strand: fill 88% so there is ample spacing to tap empty slots/placed beads for swapping
   const baseBeadSize = viewMode === "preview"
-    ? Math.max(22, Math.min(62, stepDistance * 1.01))
-    : Math.max(22, Math.min(44, stepDistance * 0.88));
+    ? Math.max(20, Math.min(52, stepDistance * 0.96))
+    : Math.max(20, Math.min(38, stepDistance * 0.82));
 
   const { centerX, centerY, rx, ry, startAngle, endAngle } = DEFAULT_STRAND_ARC;
 
