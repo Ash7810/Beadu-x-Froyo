@@ -623,63 +623,7 @@ export function BraceletCanvas({
         </div>
       )}
 
-      {/* Selected Bead Rotation Control Bar */}
-      {selectedPlacedBeadId && !compact && !readOnly && (() => {
-        const selBead = placedBeads.find((b) => b.placedId === selectedPlacedBeadId);
-        if (!selBead) return null;
-        const currentRot = selBead.rotation || 0;
 
-        return (
-          <div className="w-full bg-card/95 backdrop-blur-md border border-primary/40 p-2 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-2 z-30 animate-in fade-in zoom-in-95 my-1">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-sm">rotate_right</span>
-              <span className="text-xs font-bold text-foreground">
-                Rotate <span className="text-primary font-mono">{selBead.name}</span>:
-              </span>
-              <span className="text-xs font-mono font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-md">
-                {currentRot}°
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 flex-1 max-w-xs mx-2">
-              <input
-                type="range"
-                min="0"
-                max="360"
-                step="1"
-                value={currentRot}
-                onChange={(e) => storeState.rotateBead(selectedPlacedBeadId, Number(e.target.value))}
-                className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-              />
-            </div>
-
-            <div className="flex items-center gap-1">
-              {[0, 45, 90, 180, 270].map((deg) => (
-                <button
-                  key={deg}
-                  type="button"
-                  onClick={() => storeState.rotateBead(selectedPlacedBeadId, deg)}
-                  className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${
-                    currentRot === deg
-                      ? "bg-primary text-primary-foreground shadow-xs"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                  }`}
-                >
-                  {deg}°
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => storeState.rotateBead(selectedPlacedBeadId, currentRot + 15)}
-                className="px-2 py-1 text-[10px] font-bold bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-all cursor-pointer flex items-center gap-0.5"
-                title="Rotate +15 degrees"
-              >
-                <span>+15°</span>
-              </button>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* Capacity / Fit Error Alert Bar */}
       {lastError && !compact && (
