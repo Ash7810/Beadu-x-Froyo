@@ -73,35 +73,21 @@ export function calculateTotal(
   placedBeads: PlacedBead[],
   config: BraceletConfig
 ): PricingResult {
-  let freeBeadCount = 0;
-  let beadsTotal = 0;
-  let premiumBeadsTotal = 0;
-
   const cordBasePrice = (config.cordType && CORD_PRICES[config.cordType]) || 0;
-
-  const sorted = [...placedBeads].sort((a, b) => a.slotIndex - b.slotIndex);
-
-  sorted.forEach((bead) => {
-    if (bead.isPremium) {
-      premiumBeadsTotal += bead.price;
-      beadsTotal += bead.price;
-    } else {
-      const withinFreeWindow = freeBeadCount < config.freeSlotLimit;
-      if (withinFreeWindow) {
-        freeBeadCount += 1;
-      } else {
-        beadsTotal += bead.price;
-      }
-    }
-  });
+  
+  // Sum exact price of every placed bead on the strand
+  const beadsTotal = placedBeads.reduce((acc, bead) => acc + (Number(bead.price) || 0), 0);
+  const premiumBeadsTotal = placedBeads
+    .filter((b) => b.isPremium)
+    .reduce((acc, bead) => acc + (Number(bead.price) || 0), 0);
 
   const grandTotal = cordBasePrice + beadsTotal;
 
   return {
     total: Math.round(grandTotal * 100) / 100,
     cordBasePrice,
-    freeBeadCount,
-    chargeableBeadCount: placedBeads.length - freeBeadCount,
+    freeBeadCount: 0,
+    chargeableBeadCount: placedBeads.length,
     premiumBeadsTotal: Math.round(premiumBeadsTotal * 100) / 100,
     remainingSlots: Math.max(0, config.totalSlots - placedBeads.length),
   };

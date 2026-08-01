@@ -51,7 +51,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
           cordType: config.cordType || "elastic",
           address: "",
           totalPrice: 0, // Event complimentary checkout
-          calculatedValuation: pricing.total,
+          calculatedValuation: placedBeads.reduce((acc, b) => acc + (Number(b.price) || 0), 0),
         }),
       });
 
