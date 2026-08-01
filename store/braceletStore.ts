@@ -87,7 +87,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     const placed: PlacedBead = {
       ...bead,
       slotIndex,
-      rotation: 0,
+      rotation: bead.rotation || 0,
       placedId: `${bead.id}-${crypto.randomUUID()}`,
     };
     set({ ...pushHistory(state, [...filtered, placed]), lastError: null });
@@ -116,7 +116,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
     const replacement: PlacedBead = {
       ...newBead,
       slotIndex: target.slotIndex,
-      rotation: 0,
+      rotation: newBead.rotation || 0,
       placedId: `${newBead.id}-${crypto.randomUUID()}`,
     };
 
@@ -343,7 +343,8 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
         placed.sizeMm !== sizeMm ||
         placed.widthMm !== widthMm ||
         placed.size !== relativeSize ||
-        placed.price !== master.price
+        placed.price !== master.price ||
+        placed.rotation !== (master.rotation || 0)
       ) {
         changed = true;
         return {
@@ -352,6 +353,7 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
           price: master.price,
           material: master.material,
           imageUrl: master.imageUrl,
+          rotation: master.rotation || 0,
           size: relativeSize,
           sizeMm,
           widthMm,
