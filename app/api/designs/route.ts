@@ -13,13 +13,23 @@ export async function POST(request: Request) {
       );
     }
 
-    const orderId = `BDU-${Math.random().toString(36).substring(2, 7).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-
-    // Fast non-blocking Supabase insert with 1.2s timeout guarantee
+    let nextSeqNum = 1;
+    let orderId = "";
     let supabaseSaved = false;
+
     try {
       const dbPromise = (async () => {
         const supabaseAdmin = getSupabaseAdmin();
+
+        // 1. Get exact total order count for sequential Event Order IDs (BDU-001, BDU-002...)
+        const { count } = await supabaseAdmin.from("bracelets").select("id", { count: "exact", head: true });
+        if (count && typeof count === "number") {
+          nextSeqNum = count + 1;
+        }
+
+        const formattedSeqId = `BDU-EVENT-${String(nextSeqNum).padStart(3, "0")}`;
+
+        // 2. Insert design order record
         const { error } = await supabaseAdmin.from("bracelets").insert({
           customer_name: customerName || "Valued Customer",
           email: email || "",
@@ -32,13 +42,24 @@ export async function POST(request: Request) {
           preview_image_url: previewImageUrl || null,
           status: "confirmed",
         });
-        return !error;
+
+        return { saved: !error, seqId: formattedSeqId };
       })();
 
-      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 1200));
-      supabaseSaved = await Promise.race([dbPromise, timeoutPromise]);
+      const timeoutPromise = new Promise<{ saved: boolean; seqId?: string }>((resolve) =>
+        setTimeout(() => resolve({ saved: false }), 800)
+      );
+
+      const result = await Promise.race([dbPromise, timeoutPromise]);
+      supabaseSaved = result.saved;
+      if (result.seqId) {
+        orderId = result.seqId;
+      } else {
+        orderId = `BDU-EVENT-${String(Math.floor(Date.now() % 1000) + 1).padStart(3, "0")}`;
+      }
     } catch (sbErr) {
       console.warn("Supabase connection notice:", sbErr);
+      orderId = `BDU-EVENT-${String(Math.floor(Date.now() % 1000) + 1).padStart(3, "0")}`;
     }
 
     const orderData = {
