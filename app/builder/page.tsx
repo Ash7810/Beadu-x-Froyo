@@ -175,6 +175,19 @@ function BuilderContent() {
 
   const handleSelectBead = (bead: Bead) => {
     handleAddToTray(bead);
+
+    // Automatically add bead directly to the next empty strand slot
+    const occupiedSlots = new Set(placedBeads.map((b) => b.slotIndex));
+    let nextEmptySlot = -1;
+    for (let i = 0; i < config.totalSlots; i++) {
+      if (!occupiedSlots.has(i)) {
+        nextEmptySlot = i;
+        break;
+      }
+    }
+    if (nextEmptySlot !== -1) {
+      addBead(bead, nextEmptySlot);
+    }
   };
 
   // TRAY BEAD TAP HANDLER:
@@ -439,7 +452,7 @@ function BuilderContent() {
         {currentStep === 1 && (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
             {/* Scrollable bead library area */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 max-w-6xl mx-auto w-full pb-0">
+            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-2 sm:p-4 max-w-6xl mx-auto w-full pb-0">
               <div className="bg-card rounded-2xl border border-border/80 p-2.5 sm:p-5 shadow-xs">
                 <BeadLibrary
                   beads={beads}
@@ -539,7 +552,7 @@ function BuilderContent() {
         {/* STEP 3: REVIEW & ORDERING PAGE */}
         {/* ========================================================================= */}
         {currentStep === 3 && (
-          <div className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-3 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="text-center space-y-1">
               <span className="text-xs uppercase font-bold tracking-widest text-primary">Custom Artisan Creation</span>
               <h2 className="font-display text-xl sm:text-3xl font-bold text-foreground">Review Your Order</h2>

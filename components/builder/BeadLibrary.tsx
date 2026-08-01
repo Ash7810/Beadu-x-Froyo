@@ -59,8 +59,7 @@ export const BeadItem = memo(function BeadItem({
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          style={bead.rotation ? { transform: `rotate(${bead.rotation}deg)` } : undefined}
-          className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-sm pointer-events-none transition-transform duration-200"
+          className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-sm pointer-events-none"
         />
       </div>
 
@@ -224,7 +223,7 @@ export function BeadLibrary({
       </div>
 
       {/* Bead Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0 pr-0.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-y-auto overflow-x-hidden no-scrollbar flex-1 min-h-0 pr-0.5">
         {filtered.length === 0 ? (
           <div className="col-span-full py-12 text-center text-[12px] text-muted-foreground space-y-2">
             <span className="material-symbols-outlined text-3xl opacity-40">inventory_2</span>
