@@ -54,6 +54,7 @@ export const INITIAL_BEADS: Bead[] = [
     "imageUrl": "/beads/final_beads/bead-final-004.png",
     "isPremium": false,
     "rotationAllowed": true,
+    "rotation": 90,
     "size": 1.25,
     "sizeMm": 10,
     "widthMm": 10,

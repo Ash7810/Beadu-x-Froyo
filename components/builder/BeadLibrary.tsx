@@ -59,6 +59,7 @@ export const BeadItem = memo(function BeadItem({
         <img
           src={bead.imageUrl}
           alt={bead.name}
+          style={bead.rotation ? { transform: `rotate(${bead.rotation}deg)` } : undefined}
           className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-sm pointer-events-none"
         />
       </div>

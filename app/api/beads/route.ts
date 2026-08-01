@@ -34,7 +34,7 @@ export async function GET() {
         active: r.active,
       }]));
 
-      // 1. Maintain exact order of INITIAL_BEADS, merging DB values with catalog fallback defaults
+      // 1. Maintain exact order of INITIAL_BEADS, overriding with DB values if present
       const updatedCatalog = INITIAL_BEADS.map((b) => {
         const dbItem = dbMap.get(b.id);
         if (!dbItem) return b;

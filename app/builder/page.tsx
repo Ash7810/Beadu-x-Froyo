@@ -28,14 +28,51 @@ function BuilderContent() {
     setMounted(true);
   }, []);
 
-  // Start with INITIAL_BEADS immediately so catalog never appears empty or flashes
+  const [isInitializing, setIsInitializing] = useState(true);
   const [liveBeads, setLiveBeads] = useState<Bead[]>(INITIAL_BEADS);
   const [customBeads, setCustomBeads] = useState<Bead[]>([]);
-  
+
+  const fetchedRef = useRef(false);
+
+  // Fast pre-caching & live catalog fetch before unveiling studio
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    const preloadImages = (beadList: Bead[]) => {
+      const topImages = beadList.slice(0, 20).map((b) => b.imageUrl);
+      return Promise.all(
+        topImages.map(
+          (src) =>
+            new Promise((resolve) => {
+              const img = new Image();
+              img.onload = resolve;
+              img.onerror = resolve;
+              img.src = src;
+            })
+        )
+      );
+    };
+
+    fetch("/api/beads")
+      .then((res) => res.json())
+      .then(async (data: Bead[]) => {
+        setLiveBeads(data);
+        const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 300));
+        await Promise.race([preloadImages(data), timeoutPromise]);
+      })
+      .catch(async () => {
+        const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 300));
+        await Promise.race([preloadImages(INITIAL_BEADS), timeoutPromise]);
+      })
+      .finally(() => {
+        setIsInitializing(false);
+      });
+  }, []);
+
   // Memoize catalog with strict deterministic sorting by ID so item order NEVER shifts
   const beads = useMemo<Bead[]>(() => {
     const combined = [...liveBeads, ...customBeads];
-    // Keep catalog order strictly stable and deterministic (by catalog original index or id)
     return combined;
   }, [liveBeads, customBeads]);
 
@@ -44,19 +81,6 @@ function BuilderContent() {
 
   // Tray starts EMPTY by default for fresh session
   const [trayBeads, setTrayBeads] = useState<Bead[]>([]);
-  const fetchedRef = useRef(false);
-
-  useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    fetch("/api/beads")
-      .then((res) => res.json())
-      .then((data: Bead[]) => {
-          setLiveBeads(data);
-      })
-      .catch(() => { });
-  }, []);
 
   // Selection & Swap mode state
   const [selectedTrayBeadId, setSelectedTrayBeadId] = useState<string | null>(null);
@@ -625,6 +649,20 @@ function BuilderContent() {
           </div>
         )}
 
+        {/* Luxury Builder Initializing Preloader Overlay */}
+        {isInitializing && (
+          <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center space-y-4 animate-in fade-in duration-200 select-none">
+            <div className="relative flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+              <img src="/beadu-logo.png" alt="Beadu" className="absolute w-8 h-auto object-contain" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="font-display font-bold text-sm text-foreground tracking-wide">Initializing Builder...</h3>
+              <p className="text-[11px] text-muted-foreground font-mono animate-pulse">Preloading photoshoot beads & studio canvas</p>
+            </div>
+          </div>
+        )}
+
         {/* Checkout Modal Dialog */}
         <Checkout
           isOpen={isCheckoutOpen && placedBeads.length > 0}
@@ -652,8 +690,15 @@ export default function BuilderPage() {
 
   if (!mounted) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background text-muted-foreground text-xs font-semibold animate-pulse">
-        Initializing Customizer Studio...
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background space-y-4 select-none">
+        <div className="relative flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+          <img src="/beadu-logo.png" alt="Beadu" className="absolute w-8 h-auto object-contain" />
+        </div>
+        <div className="text-center space-y-1">
+          <h3 className="font-display font-bold text-sm text-foreground tracking-wide">Initializing Builder...</h3>
+          <p className="text-[11px] text-muted-foreground font-mono animate-pulse">Starting studio session</p>
+        </div>
       </div>
     );
   }
@@ -661,8 +706,15 @@ export default function BuilderPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen w-screen flex items-center justify-center bg-background text-muted-foreground text-xs font-semibold animate-pulse">
-          Initializing Customizer Studio...
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-background space-y-4 select-none">
+          <div className="relative flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+            <img src="/beadu-logo.png" alt="Beadu" className="absolute w-8 h-auto object-contain" />
+          </div>
+          <div className="text-center space-y-1">
+            <h3 className="font-display font-bold text-sm text-foreground tracking-wide">Initializing Builder...</h3>
+            <p className="text-[11px] text-muted-foreground font-mono animate-pulse">Starting studio session</p>
+          </div>
         </div>
       }
     >
