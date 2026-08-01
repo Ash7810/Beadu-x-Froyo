@@ -158,7 +158,7 @@ function BuilderContent() {
         loadedBeads.push({
           ...found,
           slotIndex: idx,
-          rotation: found.rotation || 0,
+          rotation: 0,
           placedId: `${found.id}-${idx}-${Date.now()}`,
         });
       }

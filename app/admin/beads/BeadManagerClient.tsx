@@ -500,28 +500,31 @@ export function BeadManagerClient({ initialBeads }: Props) {
                 const newWidthMm = Number(formData.get("width_mm")) || editingBead.widthMm || newSizeMm || 8;
                 const newRelativeSize = Number((newWidthMm / 8).toFixed(2));
 
-                const updatedBead: Bead = {
-                  ...editingBead,
-                  name: (formData.get("name") as string) || editingBead.name,
-                  category: (formData.get("category") as any) || editingBead.category,
-                  price: Number(formData.get("price")) ?? editingBead.price,
-                  material: (formData.get("material") as string) ?? editingBead.material,
-                  imageUrl: finalImageUrl,
-                  isPremium: formData.get("is_premium") === "true",
-                  rotationAllowed: formData.get("rotation_allowed") === "true",
-                  rotation: editImageRotation,
-                  size: newRelativeSize,
-                  sizeMm: newSizeMm,
-                  widthMm: newWidthMm,
-                };
-
-                // Optimistic instant UI update
-                setBeads((prev) => prev.map((b) => (b.id === editingBead.id ? updatedBead : b)));
-                setEditingBead(null);
-
                 try {
                   await updateBead(editingBead.id, formData);
                 } catch (e) {}
+
+                setBeads((prev) =>
+                  prev.map((b) =>
+                    b.id === editingBead.id
+                      ? {
+                          ...b,
+                          name: (formData.get("name") as string) || b.name,
+                          category: (formData.get("category") as any) || b.category,
+                          price: Number(formData.get("price")) ?? b.price,
+                          material: (formData.get("material") as string) ?? b.material,
+                          imageUrl: finalImageUrl,
+                          isPremium: formData.get("is_premium") === "true",
+                          rotationAllowed: formData.get("rotation_allowed") === "true",
+                          rotation: editImageRotation,
+                          size: newRelativeSize,
+                          sizeMm: newSizeMm,
+                          widthMm: newWidthMm,
+                        }
+                      : b
+                  )
+                );
+                setEditingBead(null);
               }}
               className="space-y-4 text-xs"
             >
