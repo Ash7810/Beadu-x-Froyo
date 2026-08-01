@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { Bead } from "@/lib/types";
 
 type Props = {
@@ -59,7 +59,8 @@ export const BeadItem = memo(function BeadItem({
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-sm pointer-events-none"
+          style={bead.rotation ? { transform: `rotate(${bead.rotation}deg)` } : undefined}
+          className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-sm pointer-events-none transition-transform duration-200"
         />
       </div>
 
@@ -102,17 +103,30 @@ export function BeadLibrary({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 24;
 
-  // Extract unique categories dynamically
-  const categories = Array.from(new Set(beads.map((b) => b.category).filter(Boolean)));
+  // Extract unique categories dynamically and keep order fixed
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    beads.forEach((b) => {
+      if (b.category) set.add(b.category);
+    });
+    return Array.from(set);
+  }, [beads]);
 
-  // Filter beads based on search and category
-  const filtered = beads.filter((b) => {
-    const matchesSearch =
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (b.material && b.material.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === "all" || b.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Filter beads cleanly based on search query and selected category
+  const filtered = useMemo(() => {
+    return beads.filter((b) => {
+      const q = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        b.name.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q) ||
+        (b.material && b.material.toLowerCase().includes(q));
+
+      const matchesCategory = selectedCategory === "all" || b.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [beads, searchQuery, selectedCategory]);
 
   // Calculate pagination details
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;

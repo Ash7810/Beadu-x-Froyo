@@ -86,24 +86,52 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
         </button>
 
         {completed ? (
-          <div className="text-center py-5 space-y-4 my-auto px-1">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-3xl">
+          <div className="text-center py-6 space-y-4 my-auto px-2 animate-in fade-in zoom-in-95">
+            <div className="w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-4xl border-2 border-emerald-500/30 shadow-md animate-bounce">
               ✓
             </div>
-            <h3 className="font-display text-2xl font-semibold text-foreground">
-              Order Confirmed!
-            </h3>
+
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 dark:text-emerald-400">Order Successfully Received</span>
+              <h3 className="font-display text-2xl font-bold text-foreground">
+                Thank You, {customerName || "Valued Artisan"}!
+              </h3>
+            </div>
+
             {orderId && (
-              <div className="bg-muted p-2 rounded-lg text-xs font-mono text-primary font-bold inline-block">
-                Ref ID: {orderId}
+              <div className="bg-muted p-2.5 rounded-xl border border-border/80 text-xs font-mono text-primary font-bold inline-flex items-center gap-2 shadow-xs">
+                <span className="material-symbols-outlined text-sm">tag</span>
+                <span>Ref ID: {orderId}</span>
               </div>
             )}
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Thank you, <strong className="text-foreground">{customerName || "valued customer"}</strong>. Your custom {config.wristInches}" bracelet ({placedBeads.length} beads) is queued for hand-finishing by our jewelers.
-            </p>
+
+            <div className="bg-muted/40 p-3.5 rounded-xl border border-border/70 text-xs text-muted-foreground max-w-sm mx-auto space-y-2 text-left">
+              <div className="flex justify-between items-center border-b border-border/50 pb-1.5">
+                <span className="font-medium">Customer:</span>
+                <strong className="text-foreground font-semibold">{customerName}</strong>
+              </div>
+              {customerPhone && (
+                <div className="flex justify-between items-center border-b border-border/50 pb-1.5">
+                  <span className="font-medium">Phone:</span>
+                  <strong className="text-foreground font-semibold">+91 {customerPhone}</strong>
+                </div>
+              )}
+              <div className="flex justify-between items-center border-b border-border/50 pb-1.5">
+                <span className="font-medium">Bracelet Spec:</span>
+                <strong className="text-foreground font-semibold">{config.wristInches}" Wrist ({placedBeads.length} beads)</strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Status:</span>
+                <span className="text-emerald-600 font-bold flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Queued for Hand-Finishing
+                </span>
+              </div>
+            </div>
+
             <div className="pt-2">
-              <Button onClick={handleReturnHome} className="w-full gold-shimmer text-on-primary-container font-bold py-3 rounded-full text-sm shadow-md">
-                Done & Return Home →
+              <Button onClick={handleReturnHome} className="w-full gold-shimmer text-on-primary-container font-bold py-3.5 rounded-full text-sm shadow-md hover:scale-[1.02] cursor-pointer">
+                Done & Start New Design →
               </Button>
             </div>
           </div>
@@ -222,7 +250,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: Props) {
                     maxLength={10}
                     pattern="^[0-9]{10}$"
                     title="Please enter a valid 10-digit Indian phone number"
-                    placeholder="9876543210"
+                    placeholder="Enter 10-digit mobile number"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     className="w-full px-3 py-2 bg-transparent focus:outline-none text-foreground min-h-[38px]"

@@ -23,6 +23,11 @@ import { CraftingTray } from "@/components/builder/CraftingTray";
 import { Button } from "@/components/ui/button";
 
 function BuilderContent() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Start with INITIAL_BEADS immediately so catalog never appears empty or flashes
   const [liveBeads, setLiveBeads] = useState<Bead[]>(INITIAL_BEADS);
   const [customBeads, setCustomBeads] = useState<Bead[]>([]);
@@ -48,22 +53,7 @@ function BuilderContent() {
     fetch("/api/beads")
       .then((res) => res.json())
       .then((data: Bead[]) => {
-        if (Array.isArray(data) && data.length > 0) {
-          // Build map of DB beads by ID
-          const dbMap = new Map<string, Bead>(data.map((b) => [b.id, b]));
-
-          // Update initial beads with any admin DB edits (size, sizeMm, widthMm, price, etc.)
-          const updatedCatalog = INITIAL_BEADS.map((catalogBead) => {
-            const dbBead = dbMap.get(catalogBead.id);
-            return dbBead ? { ...catalogBead, ...dbBead } : catalogBead;
-          });
-
-          // Also include any new DB-only beads added via admin
-          const catalogIds = new Set(INITIAL_BEADS.map((b) => b.id));
-          const dbOnly = data.filter((b) => !catalogIds.has(b.id));
-
-          setLiveBeads([...dbOnly, ...updatedCatalog]);
-        }
+          setLiveBeads(data);
       })
       .catch(() => { });
   }, []);
@@ -641,6 +631,20 @@ function BuilderContent() {
 }
 
 export default function BuilderPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background text-muted-foreground text-xs font-semibold animate-pulse">
+        Initializing Customizer Studio...
+      </div>
+    );
+  }
+
   return (
     <Suspense
       fallback={

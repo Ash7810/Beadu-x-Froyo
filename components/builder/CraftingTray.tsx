@@ -30,7 +30,8 @@ function TrayBeadItem({
         <img
           src={bead.imageUrl}
           alt={bead.name}
-          className="w-full h-full object-contain drop-shadow-xs pointer-events-none"
+          style={bead.rotation ? { transform: `rotate(${bead.rotation}deg)` } : undefined}
+          className="w-full h-full object-contain drop-shadow-xs pointer-events-none transition-transform duration-200"
         />
       </div>
 

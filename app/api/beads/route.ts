@@ -11,20 +11,14 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    // Try to load any admin-added beads from Supabase on top of catalog
     const { getSupabaseAdmin } = await import("@/lib/supabase");
     const { data } = await getSupabaseAdmin()
       .from("beads")
       .select("*")
-      .eq("active", true)
-      .order("created_at", { ascending: false });
+      .eq("active", true);
 
     if (data && data.length > 0) {
-      // Merge: admin DB beads take precedence, then catalog fills the rest
-      const dbIds = new Set(data.map((r: any) => r.id));
-      const catalogOnly = INITIAL_BEADS.filter((b) => !dbIds.has(b.id));
-
-      const dbBeads = data.map((r: any) => ({
+      const dbMap = new Map(data.map((r: any) => [r.id, {
         id: r.id,
         name: r.name,
         category: r.category,
@@ -33,16 +27,33 @@ export async function GET() {
         imageUrl: r.image_url || "",
         isPremium: r.is_premium,
         rotationAllowed: r.rotation_allowed,
+        rotation: r.rotation || 0,
         size: r.size || (r.width_mm ? Number((r.width_mm / 8).toFixed(2)) : 1),
         sizeMm: r.size_mm || 8,
         widthMm: r.width_mm || 8,
         active: r.active,
-      }));
+      }]));
 
-      return NextResponse.json([...dbBeads, ...catalogOnly]);
+      // 1. Maintain exact order of INITIAL_BEADS, merging DB values with catalog fallback defaults
+      const updatedCatalog = INITIAL_BEADS.map((b) => {
+        const dbItem = dbMap.get(b.id);
+        if (!dbItem) return b;
+        return {
+          ...dbItem,
+          rotation: dbItem.rotation !== undefined && dbItem.rotation !== 0 ? dbItem.rotation : (b.rotation || 0),
+        };
+      });
+
+      // 2. Only append newly created custom admin beads starting with 'custom-' or 'bead-custom'
+      const initialIds = new Set(INITIAL_BEADS.map((b) => b.id));
+      const customOnly = data
+        .filter((r: any) => !initialIds.has(r.id) && (r.id.startsWith("custom-") || r.id.startsWith("bead-custom")))
+        .map((r: any) => dbMap.get(r.id)!);
+
+      return NextResponse.json([...updatedCatalog, ...customOnly]);
     }
   } catch (_) {
-    // DB unavailable — serve catalog only
+    // DB error / offline fallback
   }
 
   return NextResponse.json(INITIAL_BEADS);

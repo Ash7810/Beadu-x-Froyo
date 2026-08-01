@@ -191,8 +191,10 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
 
   rotateBead: (placedId, rotation) => {
     const state = get();
+    // Normalize rotation angle between 0 and 360
+    const normalizedDeg = ((rotation % 360) + 360) % 360;
     const next = state.placedBeads.map((b) =>
-      b.placedId === placedId && b.rotationAllowed ? { ...b, rotation } : b
+      b.placedId === placedId ? { ...b, rotation: normalizedDeg } : b
     );
     set(pushHistory(state, next));
   },

@@ -28,12 +28,18 @@ function rotateImageBase64(imageUrl: string, rotationDeg: number): Promise<strin
         }
 
         const rad = (rotationDeg * Math.PI) / 180;
-        const is90or270 = rotationDeg === 90 || rotationDeg === 270;
+        const sin = Math.abs(Math.sin(rad));
+        const cos = Math.abs(Math.cos(rad));
 
-        canvas.width = is90or270 ? img.height : img.width;
-        canvas.height = is90or270 ? img.width : img.height;
+        // Use bounding box side length so rotated image fits fully without clipping or shrinking
+        const newWidth = Math.round(img.width * cos + img.height * sin);
+        const newHeight = Math.round(img.width * sin + img.height * cos);
+        const side = Math.max(newWidth, newHeight);
 
-        ctx.translate(canvas.width / 2, canvas.height / 2);
+        canvas.width = side;
+        canvas.height = side;
+
+        ctx.translate(side / 2, side / 2);
         ctx.rotate(rad);
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
 
@@ -59,7 +65,12 @@ export function BeadManagerClient({ initialBeads }: Props) {
 
   // Form image state
   const [addImagePreview, setAddImagePreview] = useState<string>("");
+  const [addOriginalImage, setAddOriginalImage] = useState<string>("");
+  const [addImageRotation, setAddImageRotation] = useState<number>(0);
+
   const [editImagePreview, setEditImagePreview] = useState<string>("");
+  const [editOriginalImage, setEditOriginalImage] = useState<string>("");
+  const [editImageRotation, setEditImageRotation] = useState<number>(0);
 
   const handleFileUpload = (file: File, callback: (base64: string) => void) => {
     const reader = new FileReader();
@@ -114,6 +125,7 @@ export function BeadManagerClient({ initialBeads }: Props) {
             action={async (formData: FormData) => {
               const finalImageUrl = addImagePreview || (formData.get("image_url") as string) || "";
               formData.set("image_url", finalImageUrl);
+              formData.set("rotation", String(addImageRotation));
 
               const sizeMm = Number(formData.get("size_mm")) || 8;
               const widthMm = Number(formData.get("width_mm")) || sizeMm || 8;
@@ -153,7 +165,11 @@ export function BeadManagerClient({ initialBeads }: Props) {
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files?.[0]) {
-                        handleFileUpload(e.target.files[0], setAddImagePreview);
+                        handleFileUpload(e.target.files[0], (base64) => {
+                          setAddImagePreview(base64);
+                          setAddOriginalImage(base64);
+                          setAddImageRotation(0);
+                        });
                       }
                     }}
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
@@ -167,17 +183,52 @@ export function BeadManagerClient({ initialBeads }: Props) {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRotateImage(addImagePreview, setAddImagePreview);
-                        }}
-                        className="px-2.5 py-1 bg-primary/10 text-primary text-[11px] font-bold rounded-full hover:bg-primary/20 transition-colors flex items-center gap-1 cursor-pointer z-30"
-                      >
-                        <span className="material-symbols-outlined text-xs">rotate_right</span>
-                        <span>Rotate 90°</span>
-                      </button>
+                      <div className="flex flex-col gap-1 z-30 bg-background/95 backdrop-blur-xs p-1.5 rounded-lg border border-border/80 shadow-xs w-full max-w-[160px]">
+                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">rotate_right</span>
+                            <span>Angle:</span>
+                          </span>
+                          <span className="text-primary font-mono">{addImageRotation}°</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="360"
+                          step="1"
+                          value={addImageRotation}
+                          onChange={(e) => {
+                            const angle = Number(e.target.value);
+                            setAddImageRotation(angle);
+                            if (addOriginalImage) {
+                              rotateImageBase64(addOriginalImage, angle).then(setAddImagePreview);
+                            }
+                          }}
+                          className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                        <div className="flex items-center justify-between gap-1 pt-0.5">
+                          {[0, 45, 90, 180, 270].map((deg) => (
+                            <button
+                              key={deg}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setAddImageRotation(deg);
+                                if (addOriginalImage) {
+                                  rotateImageBase64(addOriginalImage, deg).then(setAddImagePreview);
+                                }
+                              }}
+                              className={`px-1 py-0.5 text-[9px] font-bold rounded cursor-pointer ${
+                                addImageRotation === deg
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              {deg}°
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -342,7 +393,7 @@ export function BeadManagerClient({ initialBeads }: Props) {
               <div className="flex flex-col gap-1.5 shrink-0">
                 <button
                   type="button"
-                  onClick={() => { setEditingBead(bead); setEditImagePreview(bead.imageUrl); }}
+                  onClick={() => { setEditingBead(bead); setEditImagePreview(bead.imageUrl); setEditOriginalImage(bead.imageUrl); setEditImageRotation(0); }}
                   className="px-2.5 py-1 text-[11px] font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-0.5 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">edit</span>
@@ -404,7 +455,7 @@ export function BeadManagerClient({ initialBeads }: Props) {
                   </td>
                   <td className="px-4 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button type="button" onClick={() => { setEditingBead(bead); setEditImagePreview(bead.imageUrl); }} className="px-3 py-1 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer">
+                      <button type="button" onClick={() => { setEditingBead(bead); setEditImagePreview(bead.imageUrl); setEditOriginalImage(bead.imageUrl); setEditImageRotation(0); }} className="px-3 py-1 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-full transition-colors flex items-center gap-1 cursor-pointer">
                         <span className="material-symbols-outlined text-sm">edit</span>Edit
                       </button>
                       <form action={async () => { try { await deleteBead(bead.id); } catch (e) {} setBeads((prev) => prev.filter((b) => b.id !== bead.id)); }}>
@@ -443,6 +494,7 @@ export function BeadManagerClient({ initialBeads }: Props) {
               action={async (formData: FormData) => {
                 const finalImageUrl = editImagePreview || (formData.get("image_url") as string) || editingBead.imageUrl;
                 formData.set("image_url", finalImageUrl);
+                formData.set("rotation", String(editImageRotation));
 
                 const newSizeMm = Number(formData.get("size_mm")) || editingBead.sizeMm || 8;
                 const newWidthMm = Number(formData.get("width_mm")) || editingBead.widthMm || newSizeMm || 8;
@@ -464,6 +516,7 @@ export function BeadManagerClient({ initialBeads }: Props) {
                           imageUrl: finalImageUrl,
                           isPremium: formData.get("is_premium") === "true",
                           rotationAllowed: formData.get("rotation_allowed") === "true",
+                          rotation: editImageRotation,
                           size: newRelativeSize,
                           sizeMm: newSizeMm,
                           widthMm: newWidthMm,
@@ -485,7 +538,11 @@ export function BeadManagerClient({ initialBeads }: Props) {
                       accept="image/*"
                       onChange={(e) => {
                         if (e.target.files?.[0]) {
-                          handleFileUpload(e.target.files[0], setEditImagePreview);
+                          handleFileUpload(e.target.files[0], (base64) => {
+                            setEditImagePreview(base64);
+                            setEditOriginalImage(base64);
+                            setEditImageRotation(0);
+                          });
                         }
                       }}
                       className="absolute inset-0 opacity-0 cursor-pointer z-10"
@@ -499,17 +556,52 @@ export function BeadManagerClient({ initialBeads }: Props) {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRotateImage(editImagePreview, setEditImagePreview);
-                          }}
-                          className="px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full hover:bg-primary/20 transition-colors flex items-center gap-1 cursor-pointer z-30"
-                        >
-                          <span className="material-symbols-outlined text-xs">rotate_right</span>
-                          <span>Rotate 90°</span>
-                        </button>
+                        <div className="flex flex-col gap-1 z-30 bg-background/95 backdrop-blur-xs p-1.5 rounded-lg border border-border/80 shadow-xs">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-xs">rotate_right</span>
+                              <span>Angle:</span>
+                            </span>
+                            <span className="text-primary font-mono">{editImageRotation}°</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="360"
+                            step="1"
+                            value={editImageRotation}
+                            onChange={(e) => {
+                              const angle = Number(e.target.value);
+                              setEditImageRotation(angle);
+                              if (editOriginalImage) {
+                                rotateImageBase64(editOriginalImage, angle).then(setEditImagePreview);
+                              }
+                            }}
+                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                          />
+                          <div className="flex items-center justify-between gap-1 pt-0.5">
+                            {[0, 45, 90, 180, 270].map((deg) => (
+                              <button
+                                key={deg}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditImageRotation(deg);
+                                  if (editOriginalImage) {
+                                    rotateImageBase64(editOriginalImage, deg).then(setEditImagePreview);
+                                  }
+                                }}
+                                className={`px-1 py-0.5 text-[9px] font-bold rounded cursor-pointer ${
+                                  editImageRotation === deg
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground hover:text-foreground"
+                                }`}
+                              >
+                                {deg}°
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <span className="text-xs font-semibold text-foreground">Change Image</span>

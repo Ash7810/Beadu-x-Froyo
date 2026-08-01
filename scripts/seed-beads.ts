@@ -47,6 +47,7 @@ async function seed() {
     image_url: b.imageUrl,
     is_premium: b.isPremium,
     rotation_allowed: b.rotationAllowed,
+    rotation: b.rotation || 0,
     size: b.size,
     size_mm: b.sizeMm,
     width_mm: b.widthMm,

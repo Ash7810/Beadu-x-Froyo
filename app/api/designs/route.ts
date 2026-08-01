@@ -15,30 +15,30 @@ export async function POST(request: Request) {
 
     const orderId = `BDU-${Math.random().toString(36).substring(2, 7).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
-    // Try saving to Supabase if credentials are space-separated/present
+    // Fast non-blocking Supabase insert with 1.2s timeout guarantee
     let supabaseSaved = false;
     try {
-      const supabaseAdmin = getSupabaseAdmin();
-      const { error } = await supabaseAdmin.from("bracelets").insert({
-        customer_name: customerName || "Valued Customer",
-        email: email || "",
-        phone: phone || "",
-        wrist_inches: wristInches || 7.0,
-        cord_type: cordType || "elastic",
-        placed_beads: placedBeads,
-        total_price: Math.round((totalPrice || 0) * 100), // stored in paise
-        address: address || "",
-        preview_image_url: previewImageUrl || null,
-        status: "confirmed",
-      });
+      const dbPromise = (async () => {
+        const supabaseAdmin = getSupabaseAdmin();
+        const { error } = await supabaseAdmin.from("bracelets").insert({
+          customer_name: customerName || "Valued Customer",
+          email: email || "",
+          phone: phone || "",
+          wrist_inches: wristInches || 7.0,
+          cord_type: cordType || "elastic",
+          placed_beads: placedBeads,
+          total_price: Math.round((totalPrice || 0) * 100),
+          address: address || "",
+          preview_image_url: previewImageUrl || null,
+          status: "confirmed",
+        });
+        return !error;
+      })();
 
-      if (!error) {
-        supabaseSaved = true;
-      } else {
-        console.warn("Supabase insertion notice:", error.message);
-      }
+      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 1200));
+      supabaseSaved = await Promise.race([dbPromise, timeoutPromise]);
     } catch (sbErr) {
-      console.warn("Supabase connection not initialized or configured:", sbErr);
+      console.warn("Supabase connection notice:", sbErr);
     }
 
     const orderData = {

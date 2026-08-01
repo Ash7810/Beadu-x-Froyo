@@ -26,6 +26,7 @@ export type Bead = {
   imageUrl: string;
   isPremium: boolean;
   rotationAllowed: boolean;
+  rotation?: number;
   size: number; // relative width, used for slot spacing math
   sizeMm: number; // physical bead diameter in mm (e.g. 6mm, 8mm, 10mm, 12mm)
   widthMm: number; // physical bead width in mm
