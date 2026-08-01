@@ -14,6 +14,10 @@ export type BeadCategory =
   | "premium-charm"
   | "charm"
   | "wood"
+  | "acrylic"
+  | "glass"
+  | "stone"
+  | "accent"
   | "ceramic"
   | "custom";
 
