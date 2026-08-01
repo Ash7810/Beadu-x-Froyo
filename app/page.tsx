@@ -84,7 +84,6 @@ export default function Home() {
             href="/builder"
             className="gold-shimmer text-on-primary-container px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-1.5"
           >
-            <span className="material-symbols-outlined text-base sm:text-lg">auto_awesome</span>
             <span>Start Designing</span>
           </Link>
         </div>
