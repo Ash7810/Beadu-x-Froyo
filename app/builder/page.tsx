@@ -21,6 +21,7 @@ import { useBraceletStore } from "@/store/braceletStore";
 import { getStrandSpecFromWrist } from "@/lib/pricing";
 import { CraftingTray } from "@/components/builder/CraftingTray";
 import { Button } from "@/components/ui/button";
+import { generateBraceletPreviewSvg } from "@/components/builder/CustomBraceletPreview";
 
 function BuilderContent() {
   const [mounted, setMounted] = useState(false);
@@ -86,7 +87,20 @@ function BuilderContent() {
   const [selectedTrayBeadId, setSelectedTrayBeadId] = useState<string | null>(null);
   const [selectedPlacedBeadId, setSelectedPlacedBeadId] = useState<string | null>(null);
 
-  const { addBead, swapBead, swapPlacedBeads, removeBead, placedBeads, config, pricing, reset, loadDesign, setWristInches, startNewCustomer, clearError, syncBeadsWithCatalog } = useBraceletStore();
+  const { addBead, swapBead, swapPlacedBeads, removeBead, placedBeads, config, pricing, reset, loadDesign, setWristInches, startNewCustomer, clearError, syncBeadsWithCatalog, shuffleDesign } = useBraceletStore();
+
+  const handleShuffle = () => {
+    let pool = trayBeads;
+    if (pool.length === 0 && beads.length > 0) {
+      // Pick 5 curated beads from catalog into tray if tray is empty
+      const curated = beads.slice(0, 6);
+      setTrayBeads(curated);
+      pool = curated;
+    }
+    if (pool.length > 0) {
+      shuffleDesign(pool);
+    }
+  };
 
   useEffect(() => {
     if (beads.length > 0) {
@@ -130,7 +144,7 @@ function BuilderContent() {
     setTrayBeads((prev) => [...prev, newBead]);
   };
 
-  // Only reset the bracelet store when explicitly loading a fresh session via ?new=1
+  // Handle fresh session vs editing existing session (step=2)
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (searchParams.get("new") === "1") {
@@ -139,9 +153,34 @@ function BuilderContent() {
         setSelectedTrayBeadId(null);
         setSelectedPlacedBeadId(null);
         setCurrentStep(1);
+      } else if (searchParams.get("step") === "2" || placedBeads.length > 0) {
+        setCurrentStep(2);
       }
     }
-  }, [searchParams, reset]);
+  }, [searchParams, reset, placedBeads.length]);
+
+  // Sync Crafting Tray with placedBeads so all custom beads are available in tray
+  useEffect(() => {
+    if (placedBeads.length > 0) {
+      const seen = new Set<string>();
+      const uniqueBeads: Bead[] = [];
+      placedBeads.forEach((pb) => {
+        if (!seen.has(pb.id)) {
+          seen.add(pb.id);
+          uniqueBeads.push(pb);
+        }
+      });
+
+      setTrayBeads((prev) => {
+        const prevSeen = new Set(prev.map((b) => b.id));
+        const missing = uniqueBeads.filter((b) => !prevSeen.has(b.id));
+        if (missing.length > 0) {
+          return [...prev, ...missing];
+        }
+        return prev;
+      });
+    }
+  }, [placedBeads]);
 
   const handleAddToTray = (bead: Bead) => {
     if (trayBeads.some((b) => b.id === bead.id)) {
@@ -548,12 +587,22 @@ function BuilderContent() {
                 onClearTray={handleClearTray}
               />
 
-              {/* Step 2 Bottom Bar: Count & Proceed CTA */}
+              {/* Step 2 Bottom Bar: Count, Shuffle & Proceed CTA */}
               <div className="flex items-center justify-between bg-card/90 backdrop-blur-md border border-border/80 px-3 py-2 rounded-xl shadow-xs">
-                <div className="text-xs flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-primary text-base">blur_on</span>
-                  <span className="text-muted-foreground font-medium">Strand:</span>
-                  <strong className="text-foreground font-bold">{placedBeads.length} / {config.totalSlots} beads</strong>
+                <div className="text-xs flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-primary text-base">blur_on</span>
+                    <span className="text-muted-foreground font-medium">Strand:</span>
+                    <strong className="text-foreground font-bold">{placedBeads.length} / {config.totalSlots} beads</strong>
+                  </div>
+
+                  <button
+                    onClick={handleShuffle}
+                    className="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-bold text-xs rounded-full transition-all flex items-center gap-1 active:scale-95 shadow-xs"
+                    title="Randomize beads onto strand to create a fresh custom design"
+                  >
+                    <span>🎲 Shuffle Design</span>
+                  </button>
                 </div>
 
                 <button
@@ -602,8 +651,8 @@ function BuilderContent() {
                       <strong className="text-foreground font-bold">{config.wristInches.toFixed(1)}" ({Math.round(config.wristInches * 2.54)} cm)</strong>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground font-medium">Cable Spec:</span>
-                      <strong className="text-foreground font-bold">{(config.wristInches + 2.0).toFixed(1)}" (incl. 2.0" knot)</strong>
+                      <span className="text-muted-foreground font-medium">Fit &amp; Finish:</span>
+                      <strong className="text-foreground font-bold">Handcrafted Precision Fit</strong>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground font-medium">Components:</span>
@@ -627,22 +676,89 @@ function BuilderContent() {
                 <Button variant="outline" onClick={() => setCurrentStep(2)} className="w-full sm:flex-1 text-xs font-bold py-3 rounded-full border-border/80">
                   ← Edit Strand &amp; Size
                 </Button>
-                <div className="w-full sm:flex-1 flex flex-col items-center gap-1.5">
+                <div className="w-full sm:flex-1 flex flex-col sm:flex-row items-center gap-2">
                   <button
-                    onClick={() => setIsCheckoutOpen(true)}
+                    onClick={() => {
+                      if (placedBeads.length === 0) return;
+                      const customImage = "/beads/pomelli_photoshoot_image_1_1_0726.png";
+                      const customProduct = {
+                        id: `custom-${Date.now()}`,
+                        name: `Bespoke Custom Bracelet (${config.wristInches.toFixed(1)}" Wrist)`,
+                        price: pricing.total > 0 ? pricing.total : 499,
+                        originalPrice: Math.round((pricing.total > 0 ? pricing.total : 499) * 1.25),
+                        rating: 5.0,
+                        reviewsCount: 1,
+                        category: "Custom Builder" as const,
+                        material: "Custom Artisan Combination" as any,
+                        image: customImage,
+                        images: [customImage],
+                        customBeads: placedBeads,
+                        description: `Bespoke custom bracelet featuring ${placedBeads.length} artisan beads (${config.wristInches.toFixed(1)}" wrist size).`,
+                        details: [
+                          `Wrist Size: ${config.wristInches.toFixed(1)}" (${Math.round(config.wristInches * 2.54)} cm)`,
+                          `Fit: Precision Handcrafted Custom Fit`,
+                          `Components: ${placedBeads.length} Hand-selected Beads`,
+                          `Hand-finished in signature velvet presentation box`,
+                        ],
+                        inStock: true,
+                      };
+                      import("@/store/ecomStore").then((m) => {
+                        m.useEcomStore.getState().addToCart(customProduct);
+                        if (typeof window !== "undefined") {
+                          window.location.href = "/cart";
+                        }
+                      });
+                    }}
                     disabled={placedBeads.length === 0}
-                    className={`w-full font-bold py-3 text-xs sm:text-sm rounded-full shadow-lg transition-all ${placedBeads.length === 0
+                    className={`w-full font-bold py-3 text-xs sm:text-sm rounded-full shadow-lg transition-all ${
+                      placedBeads.length === 0
+                        ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
+                        : "bg-muted hover:bg-muted/80 text-foreground border border-border"
+                    }`}
+                  >
+                    + Add to Cart
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (placedBeads.length === 0) return;
+                      const customImage = "/beads/pomelli_photoshoot_image_1_1_0726.png";
+                      const customProduct = {
+                        id: `custom-${Date.now()}`,
+                        name: `Bespoke Custom Bracelet (${config.wristInches.toFixed(1)}" Wrist)`,
+                        price: pricing.total > 0 ? pricing.total : 499,
+                        originalPrice: Math.round((pricing.total > 0 ? pricing.total : 499) * 1.25),
+                        rating: 5.0,
+                        reviewsCount: 1,
+                        category: "Custom Builder" as const,
+                        material: "Custom Artisan Combination" as any,
+                        image: customImage,
+                        images: [customImage],
+                        customBeads: placedBeads,
+                        description: `Bespoke custom bracelet featuring ${placedBeads.length} artisan beads (${config.wristInches.toFixed(1)}" wrist size).`,
+                        details: [
+                          `Wrist Size: ${config.wristInches.toFixed(1)}" (${Math.round(config.wristInches * 2.54)} cm)`,
+                          `Fit: Precision Handcrafted Custom Fit`,
+                          `Components: ${placedBeads.length} Hand-selected Beads`,
+                          `Hand-finished in signature velvet presentation box`,
+                        ],
+                        inStock: true,
+                      };
+                      import("@/store/ecomStore").then((m) => {
+                        m.useEcomStore.getState().addToCart(customProduct);
+                        if (typeof window !== "undefined") {
+                          window.location.href = "/checkout";
+                        }
+                      });
+                    }}
+                    disabled={placedBeads.length === 0}
+                    className={`w-full font-bold py-3 text-xs sm:text-sm rounded-full shadow-lg transition-all ${
+                      placedBeads.length === 0
                         ? "bg-muted text-muted-foreground cursor-not-allowed border border-border/60"
                         : "gold-shimmer text-on-primary-container hover:scale-[1.02] active:scale-98"
-                      }`}
+                    }`}
                   >
-                    {placedBeads.length === 0 ? "Proceed to Checkout" : `Proceed to Checkout (${placedBeads.length} Beads)`}
+                    Proceed to Checkout →
                   </button>
-                  {placedBeads.length === 0 && (
-                    <span className="text-xs text-muted-foreground font-medium text-center animate-in fade-in">
-                      Add at least 1 bead to your strand to continue.
-                    </span>
-                  )}
                 </div>
               </div>
             </div>

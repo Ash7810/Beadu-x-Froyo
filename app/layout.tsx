@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-});
 
 export const metadata: Metadata = {
   title: "Beadu | Indian Handmade Artisan Jewellery",
@@ -25,12 +18,12 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={cn("h-full scroll-smooth antialiased", outfit.variable, "font-sans")}
+      className={cn("h-full scroll-smooth antialiased font-sans")}
     >
       <head>
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
         />
         <link
           rel="stylesheet"
@@ -43,4 +36,5 @@ export default function RootLayout({
     </html>
   );
 }
+
 

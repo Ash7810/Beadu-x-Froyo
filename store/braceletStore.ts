@@ -29,6 +29,7 @@ type BraceletState = {
   reset: () => void;
   loadDesign: (beads: PlacedBead[], config?: Partial<BraceletConfig>) => void;
   syncBeadsWithCatalog: (masterBeads: Bead[]) => void;
+  shuffleDesign: (availableBeads: Bead[]) => boolean;
 };
 
 const DEFAULT_SPEC = getStrandSpecFromWrist(7.0);
@@ -362,10 +363,41 @@ export const useBraceletStore = create<BraceletState>((set, get) => ({
 
     if (changed) {
       set({
-        placedBeads: updatedPlacedBeads,
+        ...pushHistory(state, updatedPlacedBeads),
         pricing: calculateTotal(updatedPlacedBeads, state.config),
       });
     }
+  },
+
+  shuffleDesign: (availableBeads) => {
+    const state = get();
+    if (!availableBeads || availableBeads.length === 0) return false;
+
+    const totalSlots = state.config.totalSlots || 16;
+    const physCap = calculateStrandPhysicalCapacity([], state.config);
+    const newPlaced: PlacedBead[] = [];
+    let currentWidthSum = 0;
+
+    for (let slotIndex = 0; slotIndex < totalSlots; slotIndex++) {
+      const randomBead = availableBeads[Math.floor(Math.random() * availableBeads.length)];
+      const widthMm = randomBead.widthMm || randomBead.sizeMm || Math.round(8 * (randomBead.size || 1));
+
+      if (currentWidthSum + widthMm > physCap.capacityMm) break;
+
+      const placed: PlacedBead = {
+        ...randomBead,
+        slotIndex,
+        rotation: 0,
+        placedId: `${randomBead.id}-${crypto.randomUUID()}`,
+      };
+      newPlaced.push(placed);
+      currentWidthSum += widthMm;
+    }
+
+    if (newPlaced.length === 0) return false;
+
+    set({ ...pushHistory(state, newPlaced), lastError: null });
+    return true;
   },
 }));
 

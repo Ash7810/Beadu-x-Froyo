@@ -81,16 +81,6 @@ export function CraftingTray({
             {isSwapMode ? "Swap" : `${trayBeads.length}`}
           </span>
         </div>
-
-        {trayBeads.length > 0 && !isSwapMode && (
-          <button
-            onClick={onClearTray}
-            className="shrink-0 min-h-[32px] min-w-[32px] p-1.5 text-muted-foreground hover:text-destructive rounded-full transition-colors active:scale-95"
-            title="Clear Tray"
-          >
-            <span className="material-symbols-outlined text-base">delete_sweep</span>
-          </button>
-        )}
       </div>
 
       {/* Scrollable Bead Row */}
